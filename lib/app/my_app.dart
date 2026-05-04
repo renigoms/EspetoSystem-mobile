@@ -1,3 +1,5 @@
+import 'package:espetosystem/app/authentication/pages/login_page.dart';
+import 'package:espetosystem/app/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class MyApp extends StatelessWidget {
@@ -8,7 +10,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: "EspetoSystem",
       debugShowCheckedModeBanner: false,
-      home: Container(),
+      theme: ThemeData(colorScheme: AppColorsEnum.darkColorTheme),
+      home: LoginPage(),
     );
   }
 }

@@ -1,17 +1,24 @@
-import 'package:espetosystem/app/authentication/pages/login_page.dart';
-import 'package:espetosystem/app/core/theme/app_colors.dart';
+import 'package:espetosystem/app/UI/authentication/view_models/login_view_model.dart';
+import 'package:espetosystem/app/core/themes/app_themes.dart';
+import 'package:espetosystem/app/routes/general_router.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: "EspetoSystem",
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(colorScheme: AppColorsEnum.darkColorTheme),
-      home: LoginPage(),
+    return MultiProvider(
+      providers: [ChangeNotifierProvider(create: (_) => LoginModelViel())],
+      child: MaterialApp.router(
+        title: "EspetoSystem",
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(colorScheme: darkColorTheme, textTheme: textTheme),
+        routerDelegate: routes.routerDelegate,
+        routeInformationParser: routes.routeInformationParser,
+        routeInformationProvider: routes.routeInformationProvider,
+      ),
     );
   }
 }

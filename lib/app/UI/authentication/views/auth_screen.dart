@@ -28,9 +28,9 @@ class AuthScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            Flexible(flex: 3, child: TitleContainer(theme: theme)),
+            Flexible(flex: 4, child: TitleContainer(theme: theme)),
             Flexible(
-              flex: 5,
+              flex: 8,
               child: Container(
                 decoration: BoxDecoration(
                   color: theme.colorScheme.secondary,

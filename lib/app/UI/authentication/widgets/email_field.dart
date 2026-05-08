@@ -31,7 +31,7 @@ class EmailFormField extends StatelessWidget {
             color: theme.colorScheme.onSurface,
           ),
           cursorColor: theme.colorScheme.onSurface,
-          decoration: formFieldDecoration(theme),
+          decoration: formFieldDecoration(theme, null),
         ),
       ],
     );

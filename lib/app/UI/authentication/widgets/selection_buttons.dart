@@ -1,5 +1,5 @@
 import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
-import 'package:espetosystem/app/UI/authentication/view_models/login_view_model.dart';
+import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -22,13 +22,7 @@ class SelectionButtons extends StatelessWidget {
         children: [
           Expanded(
             child: GestureDetector(
-              onTap:
-                  () => {
-                    Provider.of<LoginModelViel>(
-                      context,
-                      listen: false,
-                    ).setIsLogin(true),
-                  },
+              onTap: () => {context.read<AuthViewModel>().setIsLogin(true)},
               child: Container(
                 alignment: Alignment.center,
                 height: 39,
@@ -46,13 +40,7 @@ class SelectionButtons extends StatelessWidget {
           ),
           Expanded(
             child: GestureDetector(
-              onTap:
-                  () => {
-                    Provider.of<LoginModelViel>(
-                      context,
-                      listen: false,
-                    ).setIsLogin(false),
-                  },
+              onTap: () => {context.read<AuthViewModel>().setIsLogin(false)},
               child: Container(
                 alignment: Alignment.center,
                 height: 39,

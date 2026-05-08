@@ -22,13 +22,7 @@ class SelectionButtons extends StatelessWidget {
         children: [
           Expanded(
             child: GestureDetector(
-              onTap:
-                  () => {
-                    Provider.of<AuthViewModel>(
-                      context,
-                      listen: false,
-                    ).setIsLogin(true),
-                  },
+              onTap: () => {context.read<AuthViewModel>().setIsLogin(true)},
               child: Container(
                 alignment: Alignment.center,
                 height: 39,
@@ -46,13 +40,7 @@ class SelectionButtons extends StatelessWidget {
           ),
           Expanded(
             child: GestureDetector(
-              onTap:
-                  () => {
-                    Provider.of<AuthViewModel>(
-                      context,
-                      listen: false,
-                    ).setIsLogin(false),
-                  },
+              onTap: () => {context.read<AuthViewModel>().setIsLogin(false)},
               child: Container(
                 alignment: Alignment.center,
                 height: 39,

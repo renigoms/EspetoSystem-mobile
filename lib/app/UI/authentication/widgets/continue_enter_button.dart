@@ -14,9 +14,14 @@ class ElevatedContinueEnterButton extends StatelessWidget {
     required this.passwordController,
   });
 
+  void snackMessage(String message, BuildContext context) =>
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+
   @override
   Widget build(BuildContext context) {
-    final AuthViewModel auth = Provider.of<AuthViewModel>(context);
+    final AuthViewModel auth = context.watch<AuthViewModel>();
     final showPasswordField = auth.showPasswordField;
     return SizedBox(
       width: double.infinity,
@@ -31,30 +36,20 @@ class ElevatedContinueEnterButton extends StatelessWidget {
         onPressed: () {
           if (showPasswordField) {
             if (passwordController.text.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text("Todos os campos devem ser preenchidos !"),
-                ),
-              );
+              snackMessage("Todos os campos devem ser preenchidos !", context);
               return;
             }
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("Login realizado com sucesso seguir para home"),
-              ),
+            snackMessage(
+              "Login realizado com sucesso seguir para home",
+              context,
             );
             return;
           }
           if (emailController.text.isNotEmpty) {
-            Provider.of<AuthViewModel>(
-              context,
-              listen: false,
-            ).setShowPasswordField();
+            context.read<AuthViewModel>().setShowPasswordField();
             return;
           }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Todos os campos devem ser preenchidos !")),
-          );
+          snackMessage("Todos os campos devem ser preenchidos !", context);
         },
         child: Text(
           showPasswordField

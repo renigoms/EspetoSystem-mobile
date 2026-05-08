@@ -21,7 +21,7 @@ class AuthScreen extends StatelessWidget {
     ]);
 
     final theme = Theme.of(context);
-    final AuthViewModel loginModelView = Provider.of<AuthViewModel>(context);
+    final AuthViewModel loginModelView = context.watch<AuthViewModel>();
     final bool isLogin = loginModelView.isLogin;
 
     return Scaffold(

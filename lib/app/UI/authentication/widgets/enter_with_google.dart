@@ -1,3 +1,4 @@
+import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -11,11 +12,11 @@ class EnterWithGoogle extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       spacing: 7,
       children: [
-        SvgPicture.asset("assets/icons/devicon_google.svg"),
+        SvgPicture.asset(ImagePathEnum.iconGoogle.value),
         TextButton(
           onPressed: () {},
           child: Text(
-            "Continue com o Google",
+            MessageScreen.continueWithGoogle.value,
             style: theme.textTheme.titleMedium,
           ),
         ),

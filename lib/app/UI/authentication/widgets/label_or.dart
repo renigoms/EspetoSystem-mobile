@@ -1,3 +1,4 @@
+import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
 import 'package:flutter/material.dart';
 
 class LabelOr extends StatelessWidget {
@@ -18,7 +19,7 @@ class LabelOr extends StatelessWidget {
           height: 0,
           width: 125,
         ),
-        Text("OU", style: theme.textTheme.labelSmall),
+        Text(MessageScreen.or.value, style: theme.textTheme.labelSmall),
         Container(
           decoration: BoxDecoration(
             border: Border.all(color: theme.colorScheme.onSecondary),

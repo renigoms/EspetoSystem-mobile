@@ -15,7 +15,7 @@ class PasswordFormField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final visible = Provider.of<AuthViewModel>(context).isVisible;
+    final visible = context.watch<AuthViewModel>().isVisible;
     return Column(
       children: [
         Column(
@@ -38,12 +38,7 @@ class PasswordFormField extends StatelessWidget {
               decoration: formFieldDecoration(
                 theme,
                 InkWell(
-                  onTap:
-                      () =>
-                          Provider.of<AuthViewModel>(
-                            context,
-                            listen: false,
-                          ).setVisible(),
+                  onTap: () => context.read<AuthViewModel>().setVisible(),
                   child: Icon(
                     color: theme.colorScheme.onSurface,
                     visible

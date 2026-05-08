@@ -12,11 +12,16 @@ class LoginPage extends StatelessWidget {
   final TextEditingController passwordController;
   final ThemeData theme;
 
-  const LoginPage({super.key, required this.theme, required this.emailController, required this.passwordController});
+  const LoginPage({
+    super.key,
+    required this.theme,
+    required this.emailController,
+    required this.passwordController,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final AuthViewModel auth = Provider.of<AuthViewModel>(context);
+    final AuthViewModel auth = context.watch<AuthViewModel>();
     final showPasswordField = auth.showPasswordField;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 43),
@@ -25,10 +30,7 @@ class LoginPage extends StatelessWidget {
         children: [
           EmailFormField(theme: theme, controller: emailController),
           if (showPasswordField) ...[
-            PasswordFormField(
-              controller: passwordController,
-              theme: theme,
-            ),
+            PasswordFormField(controller: passwordController, theme: theme),
           ],
           ElevatedContinueEnterButton(
             theme: theme,

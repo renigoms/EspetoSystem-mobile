@@ -8,7 +8,9 @@ enum MessageScreen {
   enter("Entrar"),
   continueLogin("Continuar"),
   emailLabel("Email"),
-  passwordLabel("Senha");
+  passwordLabel("Senha"),
+  continueWithGoogle("Continue com o Google"),
+  or("OU");
 
   final String value;
 
@@ -16,7 +18,8 @@ enum MessageScreen {
 }
 
 enum ImagePathEnum {
-  logoImagePath("assets/images/logo_with_name.png");
+  logoImagePath("assets/images/logo_with_name.png"),
+  iconGoogle("assets/icons/devicon_google.svg");
 
   final String value;
 

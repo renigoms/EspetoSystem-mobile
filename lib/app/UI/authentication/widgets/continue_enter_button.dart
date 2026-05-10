@@ -55,7 +55,7 @@ class ElevatedContinueEnterButton extends StatelessWidget {
           showPasswordField
               ? MessageScreen.enter.value
               : MessageScreen.continueLogin.value,
-          style: theme.textTheme.titleMedium,
+          style: theme.textTheme.titleLarge,
         ),
       ),
     );

@@ -10,7 +10,12 @@ enum MessageScreen {
   emailLabel("Email"),
   passwordLabel("Senha"),
   continueWithGoogle("Continue com o Google"),
-  or("OU");
+  or("OU"),
+  nameLabel("Nome"),
+  confirmPasswordLabel("Confirme sua Senha"),
+  messagePassRequired(
+    "Use 8+ caracteres distribuidos entre letras, números e especiais",
+  );
 
   final String value;
 

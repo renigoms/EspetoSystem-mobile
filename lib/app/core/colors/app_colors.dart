@@ -8,6 +8,7 @@ enum AppColorsEnum {
   twitterblue(Color(0xFF0078D7)),
   lobsterpink(Color(0xFFD9534F)),
   platinum(Color(0xFFF2F5F9)),
+  platinum64percent(Color(0xA2F2F5F9)),
   blackOpacit25percent(Color(0x40000000)),
   whiteOpacit51percent(Color(0x82FFFFFF));
 

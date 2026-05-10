@@ -1,3 +1,4 @@
+import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/continue_enter_button.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/email_field.dart';
@@ -30,7 +31,30 @@ class LoginPage extends StatelessWidget {
         children: [
           EmailFormField(theme: theme, controller: emailController),
           if (showPasswordField) ...[
-            PasswordFormField(controller: passwordController, theme: theme),
+            Column(
+              children: [
+                PasswordFormField(
+                  controller: passwordController,
+                  theme: theme,
+                  name: MessageScreen.passwordLabel.value,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {},
+                      child: Text(
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurface,
+                        ),
+                        MessageScreen.forgotPassword.value,
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ],
           ElevatedContinueEnterButton(
             theme: theme,
@@ -40,6 +64,7 @@ class LoginPage extends StatelessWidget {
 
           LabelOr(theme: theme),
           EnterWithGoogle(theme: theme),
+          SizedBox(height: 10),
         ],
       ),
     );

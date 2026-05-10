@@ -1,4 +1,5 @@
 import 'package:espetosystem/app/UI/authentication/pages/login_page.dart';
+import 'package:espetosystem/app/UI/authentication/pages/register_page.dart';
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/selection_buttons.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/title_container.dart';
@@ -48,7 +49,7 @@ class AuthScreen extends StatelessWidget {
                   ],
                 ),
                 child: Column(
-                  spacing: 20,
+                  spacing: 25,
                   children: [
                     SelectionButtons(isLogin: isLogin, theme: theme),
                     Expanded(
@@ -73,11 +74,7 @@ class AuthScreen extends StatelessWidget {
                                         emailController: _emailController,
                                         passwordController: _passwordController,
                                       )
-                                      : Text(
-                                        key: ValueKey<bool>(isLogin),
-                                        "Area de resgistro",
-                                        style: theme.textTheme.titleLarge,
-                                      ),
+                                      : RegisterPage(theme: theme),
                             ),
                           ],
                         ),

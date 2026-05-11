@@ -6,19 +6,29 @@ import 'package:espetosystem/app/UI/authentication/widgets/enter_with_google.dar
 import 'package:espetosystem/app/UI/authentication/widgets/label_or.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/password_field.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-class LoginPage extends StatelessWidget {
-  final TextEditingController emailController;
-  final TextEditingController passwordController;
+class LoginPage extends StatefulWidget {
   final ThemeData theme;
 
-  const LoginPage({
-    super.key,
-    required this.theme,
-    required this.emailController,
-    required this.passwordController,
-  });
+  const LoginPage({super.key, required this.theme});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final _emailController = TextEditingController();
+
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    super.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,23 +39,25 @@ class LoginPage extends StatelessWidget {
       child: Column(
         spacing: 18,
         children: [
-          EmailFormField(theme: theme, controller: emailController),
+          EmailFormField(theme: widget.theme, controller: _emailController),
           if (showPasswordField) ...[
             Column(
               children: [
                 PasswordFormField(
-                  controller: passwordController,
-                  theme: theme,
+                  controller: _passwordController,
+                  theme: widget.theme,
                   name: MessageScreen.passwordLabel.value,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     TextButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        context.push(RoutesPathEnum.forgotPassword.value);
+                      },
                       child: Text(
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.onSurface,
+                        style: widget.theme.textTheme.labelSmall?.copyWith(
+                          color: widget.theme.colorScheme.onSurface,
                         ),
                         MessageScreen.forgotPassword.value,
                         textAlign: TextAlign.start,
@@ -57,13 +69,13 @@ class LoginPage extends StatelessWidget {
             ),
           ],
           ElevatedContinueEnterButton(
-            theme: theme,
-            emailController: emailController,
-            passwordController: passwordController,
+            theme: widget.theme,
+            emailController: _emailController,
+            passwordController: _passwordController,
           ),
 
-          LabelOr(theme: theme),
-          EnterWithGoogle(theme: theme),
+          LabelOr(theme: widget.theme),
+          EnterWithGoogle(theme: widget.theme),
           SizedBox(height: 10),
         ],
       ),

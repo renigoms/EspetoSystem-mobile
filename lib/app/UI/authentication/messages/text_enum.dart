@@ -6,6 +6,7 @@ enum MessageScreen {
   forgotPassword("Esqueceu sua senha ?"),
   noEmptyField("Todos os campos devem ser preenchidos !"),
   enter("Entrar"),
+  sendLabel("Enviar"),
   continueLogin("Continuar"),
   emailLabel("Email"),
   passwordLabel("Senha"),
@@ -15,7 +16,9 @@ enum MessageScreen {
   confirmPasswordLabel("Confirme sua Senha"),
   messagePassRequired(
     "Use 8+ caracteres distribuidos entre letras, números e especiais",
-  );
+  ),
+  msgForgPassPageTitle("Me passa seu e-mail ?"),
+  msgForgPassPageSubTitle("Vamos te enviar um link de recuperação");
 
   final String value;
 
@@ -29,4 +32,12 @@ enum ImagePathEnum {
   final String value;
 
   const ImagePathEnum(this.value);
+}
+
+enum RoutesPathEnum {
+  forgotPassword("/forgotPassword");
+
+  final String value;
+
+  const RoutesPathEnum(this.value);
 }

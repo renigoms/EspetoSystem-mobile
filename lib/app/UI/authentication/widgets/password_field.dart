@@ -3,7 +3,7 @@ import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.d
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class PasswordFormField extends StatelessWidget {
+class PasswordFormField extends StatefulWidget {
   final TextEditingController controller;
   final ThemeData theme;
   final String name;
@@ -15,31 +15,40 @@ class PasswordFormField extends StatelessWidget {
   });
 
   @override
+  State<PasswordFormField> createState() => _PasswordFormFieldState();
+}
+
+class _PasswordFormFieldState extends State<PasswordFormField> {
+  bool _visible = true;
+  @override
   Widget build(BuildContext context) {
-    final visible = context.watch<AuthViewModel>().isVisible;
     return Column(
       spacing: 16,
       children: [
-        Row(children: [Text(name, style: theme.textTheme.titleMedium)]),
+        Row(
+          children: [
+            Text(widget.name, style: widget.theme.textTheme.titleMedium),
+          ],
+        ),
         TextFormField(
-          controller: controller,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurface,
+          controller: widget.controller,
+          style: widget.theme.textTheme.labelSmall?.copyWith(
+            color: widget.theme.colorScheme.onSurface,
           ),
-          obscureText: visible,
+          obscureText: _visible,
           decoration: formFieldDecoration(
-            theme,
+            widget.theme,
             InkWell(
-              onTap: () => context.read<AuthViewModel>().setVisible(),
+              onTap: () => setState(() => _visible = !_visible),
               child: Icon(
-                color: theme.colorScheme.onSurface,
-                visible
+                color: widget.theme.colorScheme.onSurface,
+                _visible
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
               ),
             ),
           ),
-          cursorColor: theme.colorScheme.onSurface,
+          cursorColor: widget.theme.colorScheme.onSurface,
         ),
       ],
     );

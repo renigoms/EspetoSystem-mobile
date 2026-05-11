@@ -53,6 +53,7 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     TextButton(
                       onPressed: () {
+                        context.read<AuthViewModel>().setPassRecoverySucc();
                         context.push(RoutesPathEnum.forgotPassword.value);
                       },
                       child: Text(

@@ -1,7 +1,5 @@
 import 'package:espetosystem/app/UI/authentication/components/form_filed_decorate.dart';
-import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class PasswordFormField extends StatefulWidget {
   final TextEditingController controller;

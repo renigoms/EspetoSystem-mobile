@@ -18,7 +18,11 @@ enum MessageScreen {
     "Use 8+ caracteres distribuidos entre letras, números e especiais",
   ),
   msgForgPassPageTitle("Me passa seu e-mail ?"),
-  msgForgPassPageSubTitle("Vamos te enviar um link de recuperação");
+  msgForgPassPageSubTitle("Vamos te enviar um link de recuperação"),
+  emailVerifyLabel("Verifique seu e-mail"),
+  emailSendMsg(
+    "Enviamos um link de recuperação para o seu e-mail. É só clicar nele e você conseguirá acessar.",
+  );
 
   final String value;
 
@@ -27,7 +31,8 @@ enum MessageScreen {
 
 enum ImagePathEnum {
   logoImagePath("assets/images/logo_with_name.png"),
-  iconGoogle("assets/icons/devicon_google.svg");
+  iconGoogle("assets/icons/devicon_google.svg"),
+  avatarForgotPass("assets/images/avatar_forgot_pass.png");
 
   final String value;
 

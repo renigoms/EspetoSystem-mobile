@@ -5,13 +5,13 @@ class AuthViewModel extends ChangeNotifier {
 
   bool _showPasswordField = false;
 
-  bool _isVisible = true;
+  bool _passwordRecoverySuccess = true;
 
   bool get isLogin => _isLogin;
 
   bool get showPasswordField => _showPasswordField;
 
-  bool get isVisible => _isVisible;
+  bool get passwordRecoverySuccess => _passwordRecoverySuccess;
 
   void setIsLogin(bool value) {
     _isLogin = _isLogin != value ? !_isLogin : _isLogin;
@@ -23,8 +23,8 @@ class AuthViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setVisible() {
-    _isVisible = !_isVisible;
+  void setPassRecoverySucc() {
+    _passwordRecoverySuccess = !_passwordRecoverySuccess;
     notifyListeners();
   }
 }

@@ -9,6 +9,8 @@ final darkColorTheme = ThemeData().colorScheme.copyWith(
   secondary: AppColorsEnum.gunmetal.color,
   onSecondary: AppColorsEnum.whiteOpacit51percent.color,
   tertiary: AppColorsEnum.twitterblue.color,
+  onTertiary: AppColorsEnum.platinum64percent.color,
+  primaryContainer: Colors.black,
 );
 
 final lightColorTheme = ThemeData().colorScheme.copyWith(surface: Colors.white);

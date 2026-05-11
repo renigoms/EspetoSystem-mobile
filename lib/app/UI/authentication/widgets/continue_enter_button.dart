@@ -1,3 +1,4 @@
+import 'package:espetosystem/app/UI/authentication/components/button_style.dart';
 import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
 import 'package:flutter/material.dart';
@@ -26,13 +27,7 @@ class ElevatedContinueEnterButton extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        style: ButtonStyle(
-          shape: WidgetStateProperty.all(
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
-          ),
-
-          backgroundColor: WidgetStateProperty.all(theme.colorScheme.tertiary),
-        ),
+        style: buttonStyleBlue(theme),
         onPressed: () {
           if (showPasswordField) {
             if (passwordController.text.isEmpty) {
@@ -55,7 +50,7 @@ class ElevatedContinueEnterButton extends StatelessWidget {
           showPasswordField
               ? MessageScreen.enter.value
               : MessageScreen.continueLogin.value,
-          style: theme.textTheme.titleMedium,
+          style: theme.textTheme.titleLarge,
         ),
       ),
     );

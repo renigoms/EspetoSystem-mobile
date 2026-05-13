@@ -4,7 +4,12 @@ import 'package:flutter_svg/svg.dart';
 
 class EnterWithGoogle extends StatelessWidget {
   final ThemeData theme;
-  const EnterWithGoogle({super.key, required this.theme});
+  final Function onPressed;
+  const EnterWithGoogle({
+    super.key,
+    required this.theme,
+    required this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +19,7 @@ class EnterWithGoogle extends StatelessWidget {
       children: [
         SvgPicture.asset(ImagePathEnum.iconGoogle.value),
         TextButton(
-          onPressed: () {},
+          onPressed: () => onPressed(),
           child: Text(
             MessageScreen.continueWithGoogle.value,
             style: theme.textTheme.titleMedium,

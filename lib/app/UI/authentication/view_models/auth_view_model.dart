@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthViewModel extends ChangeNotifier {
   bool _isLogin = true;
@@ -76,5 +78,52 @@ class AuthViewModel extends ChangeNotifier {
       return true;
     }
     return "Todos os campos devem ser preenchidos !";
+  }
+
+  final supabase = Supabase.instance.client;
+
+  Future<String> continueWithGoogleAction() async {
+    try {
+      // O serverClientId DEVE ser o Web Client ID para que o Supabase aceite o token
+      const webClientId =
+          '823631587645-ed0pe3ukr3qrga348d40spjjidi8s7lp.apps.googleusercontent.com';
+
+      GoogleSignIn signIn = GoogleSignIn.instance;
+      await signIn.initialize(serverClientId: webClientId);
+
+      final GoogleSignInAccount googleUser = await signIn.authenticate();
+
+      final String? idToken = googleUser.authentication.idToken;
+
+      final authorization =
+          await googleUser.authorizationClient.authorizationForScopes([
+            'email',
+            'profile',
+          ]) ??
+          await googleUser.authorizationClient.authorizeScopes([
+            'email',
+            'profile',
+          ]);
+
+      final String accessToken = authorization.accessToken;
+
+      if (idToken == null) {
+        return 'ID Token não encontrado. Verifique as configurações no Google Cloud Console.';
+      }
+
+      final result = await supabase.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: accessToken,
+      );
+
+      if (result.user != null && result.session != null) {
+        return "Deu certo !! ${result.user?.id}";
+      }
+      return "Erro ao sincronizar com o servidor";
+    } catch (e) {
+      print(e);
+      return "Erro ao fazer login com Google: $e";
+    }
   }
 }

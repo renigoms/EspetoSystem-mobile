@@ -1,6 +1,5 @@
 import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
-import 'package:espetosystem/app/UI/authentication/widgets/check_password_row.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/default_form_field.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/elevated_button_custom.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/email_field.dart';

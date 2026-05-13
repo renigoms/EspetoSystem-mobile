@@ -3,11 +3,11 @@ import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.d
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-class SelectionButtons extends StatelessWidget {
+class NavigationButtons extends StatelessWidget {
   final ThemeData theme;
   final bool isLogin;
 
-  const SelectionButtons({
+  const NavigationButtons({
     super.key,
     required this.isLogin,
     required this.theme,

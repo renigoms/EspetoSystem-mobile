@@ -10,4 +10,7 @@ final textTheme = ThemeData().textTheme.copyWith(
   ),
 
   labelSmall: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 12)),
+  displaySmall: GoogleFonts.roboto(
+    textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+  ),
 );

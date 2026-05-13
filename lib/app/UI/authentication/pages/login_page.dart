@@ -1,6 +1,6 @@
 import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
-import 'package:espetosystem/app/UI/authentication/widgets/continue_enter_button.dart';
+import 'package:espetosystem/app/UI/authentication/widgets/elevated_button_custom.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/email_field.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/enter_with_google.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/label_or.dart';
@@ -29,6 +29,11 @@ class _LoginPageState extends State<LoginPage> {
     _emailController.dispose();
     _passwordController.dispose();
   }
+
+  void snackMessage(String message, BuildContext context) =>
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
 
   @override
   Widget build(BuildContext context) {
@@ -69,10 +74,25 @@ class _LoginPageState extends State<LoginPage> {
               ],
             ),
           ],
-          ElevatedContinueEnterButton(
+          ElevatedButtomCustom(
             theme: widget.theme,
-            emailController: _emailController,
-            passwordController: _passwordController,
+            title:
+                showPasswordField
+                    ? MessageScreen.enter.value
+                    : MessageScreen.continueLogin.value,
+            onPressed: () {
+              final action = context
+                  .read<AuthViewModel>()
+                  .handleLoginButtonPressed(
+                    _emailController.text,
+                    _passwordController.text,
+                  );
+
+              if (action is String) {
+                snackMessage(action, context);
+                return;
+              }
+            },
           ),
 
           LabelOr(theme: widget.theme),

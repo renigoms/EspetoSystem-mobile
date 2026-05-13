@@ -1,7 +1,7 @@
 import 'package:espetosystem/app/UI/authentication/pages/login_page.dart';
 import 'package:espetosystem/app/UI/authentication/pages/register_page.dart';
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
-import 'package:espetosystem/app/UI/authentication/widgets/selection_buttons.dart';
+import 'package:espetosystem/app/UI/authentication/widgets/navigation_buttons.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/title_container.dart';
 import 'package:espetosystem/app/core/colors/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -65,7 +65,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: Column(
                   spacing: 25,
                   children: [
-                    SelectionButtons(isLogin: isLogin, theme: theme),
+                    NavigationButtons(isLogin: isLogin, theme: theme),
                     Expanded(
                       child: SingleChildScrollView(
                         child: Column(

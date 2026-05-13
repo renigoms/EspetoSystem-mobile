@@ -1,9 +1,13 @@
-import 'package:espetosystem/app/UI/authentication/components/button_style.dart';
 import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
+import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
+import 'package:espetosystem/app/UI/authentication/widgets/check_password_row.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/default_form_field.dart';
+import 'package:espetosystem/app/UI/authentication/widgets/elevated_button_custom.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/email_field.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/password_field.dart';
+import 'package:espetosystem/app/UI/authentication/widgets/security_password_validate.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class RegisterPage extends StatefulWidget {
   final ThemeData theme;
@@ -34,6 +38,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authViewModelRead = context.read<AuthViewModel>();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 43),
       child: Column(
@@ -49,25 +54,34 @@ class _RegisterPageState extends State<RegisterPage> {
             controller: _emailRegisterController,
           ),
           Column(
+            spacing: 8,
             children: [
               PasswordFormField(
                 name: MessageScreen.passwordLabel.value,
                 controller: _passwordRegisterController,
                 theme: widget.theme,
+                onChanged: (value) {
+                  authViewModelRead.setHasMinLength(value);
+                  authViewModelRead.setHasNumberCase(value);
+                  authViewModelRead.setHasSpecialCase(value);
+                  authViewModelRead.setHasUpperCase(value);
+                },
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      "Use 8+ caracteres distribuidos entre letras, números e especiais",
-                      softWrap: true,
-                      style: widget.theme.textTheme.labelSmall?.copyWith(
-                        color: widget.theme.colorScheme.onTertiary,
+              _passwordRegisterController.text.isEmpty
+                  ? Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          MessageScreen.messagePassRequired.value,
+                          softWrap: true,
+                          style: widget.theme.textTheme.labelSmall?.copyWith(
+                            color: widget.theme.colorScheme.onTertiary,
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
+                    ],
+                  )
+                  : SecurityPasswordValidate(theme: widget.theme),
             ],
           ),
           PasswordFormField(
@@ -75,16 +89,24 @@ class _RegisterPageState extends State<RegisterPage> {
             controller: _confirmPasswordRegisterController,
             theme: widget.theme,
           ),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: buttonStyleBlue(widget.theme),
-              child: Text(
-                MessageScreen.buttonRegisterName.value,
-                style: widget.theme.textTheme.titleLarge,
-              ),
-            ),
+
+          ElevatedButtomCustom(
+            theme: widget.theme,
+            title: MessageScreen.buttonRegisterName.value,
+            onPressed: () {
+              final value = _passwordRegisterController.text;
+              if (authViewModelRead.passwordFailVerify) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Essa senha está fraca !")),
+                );
+                return;
+              }
+              if (value != _confirmPasswordRegisterController.text) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("As senhas não combinam")),
+                );
+              }
+            },
           ),
           SizedBox(height: 10),
         ],

@@ -5,11 +5,13 @@ class PasswordFormField extends StatefulWidget {
   final TextEditingController controller;
   final ThemeData theme;
   final String name;
+  final Function(String)? onChanged;
   const PasswordFormField({
     super.key,
     required this.controller,
     required this.theme,
     required this.name,
+    this.onChanged,
   });
 
   @override
@@ -33,6 +35,7 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
           style: widget.theme.textTheme.labelSmall?.copyWith(
             color: widget.theme.colorScheme.onSurface,
           ),
+          onChanged: widget.onChanged,
           obscureText: _visible,
           decoration: formFieldDecoration(
             widget.theme,

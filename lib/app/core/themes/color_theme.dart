@@ -11,6 +11,7 @@ final darkColorTheme = ThemeData().colorScheme.copyWith(
   tertiary: AppColorsEnum.twitterblue.color,
   onTertiary: AppColorsEnum.platinum64percent.color,
   primaryContainer: Colors.black,
+  error: AppColorsEnum.lobsterpink.color,
 );
 
 final lightColorTheme = ThemeData().colorScheme.copyWith(surface: Colors.white);

@@ -23,6 +23,8 @@ class _LoginPageState extends State<LoginPage> {
 
   final _passwordController = TextEditingController();
 
+  String? testeID;
+
   @override
   void dispose() {
     super.dispose();
@@ -96,7 +98,19 @@ class _LoginPageState extends State<LoginPage> {
           ),
 
           LabelOr(theme: widget.theme),
-          EnterWithGoogle(theme: widget.theme),
+          EnterWithGoogle(
+            theme: widget.theme,
+            onPressed: () async {
+              String? idUSer =
+                  await context
+                      .read<AuthViewModel>()
+                      .continueWithGoogleAction();
+
+              if (mounted) {
+                snackMessage(idUSer, context);
+              }
+            },
+          ),
           SizedBox(height: 10),
         ],
       ),

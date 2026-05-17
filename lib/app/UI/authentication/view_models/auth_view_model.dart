@@ -70,8 +70,6 @@ class AuthViewModel extends ChangeNotifier {
       if (password.isEmpty) {
         return "Todos os campos devem ser preenchidos !";
       }
-
-      return "Login realizado com sucesso seguir para home";
     }
     if (email.isNotEmpty) {
       setShowPasswordField();

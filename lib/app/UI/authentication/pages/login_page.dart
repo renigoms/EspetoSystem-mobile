@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/elevated_button_custom.dart';
@@ -94,6 +96,15 @@ class _LoginPageState extends State<LoginPage> {
                 snackMessage(action, context);
                 return;
               }
+
+              final email = _emailController.text,
+                  password = _passwordController.text;
+
+              if (action == true &&
+                  email == "admin@admin.com" &&
+                  password == "admin") {
+                context.go('/home');
+              }
             },
           ),
 
@@ -106,9 +117,10 @@ class _LoginPageState extends State<LoginPage> {
                       .read<AuthViewModel>()
                       .continueWithGoogleAction();
 
-              if (mounted) {
-                snackMessage(idUSer, context);
-              }
+              if (!mounted) return;
+
+              snackMessage(idUSer, context);
+              context.go('/home');
             },
           ),
           SizedBox(height: 10),

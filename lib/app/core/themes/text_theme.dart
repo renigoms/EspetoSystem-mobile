@@ -9,6 +9,10 @@ final textTheme = ThemeData().textTheme.copyWith(
     textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
   ),
 
+  bodyMedium: GoogleFonts.roboto(
+    textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+  ),
+
   labelSmall: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 12)),
   displaySmall: GoogleFonts.roboto(
     textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

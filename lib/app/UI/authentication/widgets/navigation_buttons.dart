@@ -1,5 +1,6 @@
 import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
+import 'package:espetosystem/app/core/themes/theme_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,6 +16,7 @@ class NavigationButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeViewModel = context.watch<ThemeViewModel>();
     return Padding(
       padding: const EdgeInsets.only(top: 30, left: 40, right: 40),
       child: Row(
@@ -28,11 +30,20 @@ class NavigationButtons extends StatelessWidget {
                 height: 39,
                 color:
                     isLogin
-                        ? theme.colorScheme.primary
+                        ? themeViewModel.themeMode == ThemeMode.light
+                            ? theme.colorScheme.tertiary
+                            : theme.colorScheme.primary
+                        : themeViewModel.themeMode == ThemeMode.light
+                        ? theme.colorScheme.surface
                         : theme.colorScheme.onPrimary,
                 child: Text(
                   MessageScreen.buttonLoginName.value,
-                  style: theme.textTheme.titleMedium,
+                  style:
+                      themeViewModel.themeMode == ThemeMode.light && isLogin
+                          ? theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.surface,
+                          )
+                          : theme.textTheme.titleMedium,
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -46,11 +57,20 @@ class NavigationButtons extends StatelessWidget {
                 height: 39,
                 color:
                     !isLogin
-                        ? theme.colorScheme.primary
+                        ? themeViewModel.themeMode == ThemeMode.light
+                            ? theme.colorScheme.tertiary
+                            : theme.colorScheme.primary
+                        : themeViewModel.themeMode == ThemeMode.light
+                        ? theme.colorScheme.surface
                         : theme.colorScheme.onPrimary,
                 child: Text(
                   MessageScreen.buttonRegisterName.value,
-                  style: theme.textTheme.titleMedium,
+                  style:
+                      themeViewModel.themeMode == ThemeMode.light && !isLogin
+                          ? theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.surface,
+                          )
+                          : theme.textTheme.titleMedium,
                   textAlign: TextAlign.center,
                 ),
               ),

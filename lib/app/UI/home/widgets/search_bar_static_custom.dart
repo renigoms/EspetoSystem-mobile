@@ -22,7 +22,9 @@ class SearchBarStaticCustom extends StatelessWidget {
             Icon(LucideIcons.search, color: theme.colorScheme.onSecondary),
             Text(
               "Buscar cliente ou descrição...",
-              style: TextStyle(color: theme.colorScheme.onSecondary),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onSecondary,
+              ),
             ),
           ],
         ),

@@ -1,5 +1,8 @@
+import 'package:espetosystem/app/core/themes/theme_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class AppBarCustom extends StatelessWidget {
   final ThemeData theme;
@@ -7,6 +10,7 @@ class AppBarCustom extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = context.watch<ThemeViewModel>().themeMode;
     return AppBar(
       automaticallyImplyLeading: false,
       toolbarHeight: 75,
@@ -33,7 +37,14 @@ class AppBarCustom extends StatelessWidget {
               ),
             ],
           ),
-          SvgPicture.asset('assets/icons/settings.svg'),
+          GestureDetector(
+            onTap: () => context.push('/home/settings'),
+            child: SvgPicture.asset(
+              themeMode == ThemeMode.light
+                  ? 'assets/icons/settings-light.svg'
+                  : 'assets/icons/settings-dark.svg',
+            ),
+          ),
         ],
       ),
       backgroundColor: theme.colorScheme.primary,

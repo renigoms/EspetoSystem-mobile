@@ -66,13 +66,11 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Object handleLoginButtonPressed(String email, String password) {
-    if (showPasswordField) {
+    if (email.isNotEmpty) {
+      setShowPasswordField();
       if (password.isEmpty) {
         return "Todos os campos devem ser preenchidos !";
       }
-    }
-    if (email.isNotEmpty) {
-      setShowPasswordField();
       return true;
     }
     return "Todos os campos devem ser preenchidos !";

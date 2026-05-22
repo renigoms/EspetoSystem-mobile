@@ -2,7 +2,7 @@
 
 import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
-import 'package:espetosystem/app/UI/authentication/widgets/elevated_button_custom.dart';
+import 'package:espetosystem/app/core/widgets/elevated_button_custom.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/email_field.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/enter_with_google.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/label_or.dart';
@@ -92,18 +92,21 @@ class _LoginPageState extends State<LoginPage> {
                     _passwordController.text,
                   );
 
-              if (action is String) {
-                snackMessage(action, context);
-                return;
-              }
-
               final email = _emailController.text,
                   password = _passwordController.text;
 
-              if (action == true &&
-                  email == "admin@admin.com" &&
-                  password == "admin") {
-                context.go('/home');
+              if (showPasswordField) {
+                if (action is String) {
+                  snackMessage(action, context);
+                  return;
+                }
+                if (action == true &&
+                    email == "admin@admin.com" &&
+                    password == "admin") {
+                  context.go('/home');
+                  return;
+                }
+                snackMessage("E-mail ou senha inválida !", context);
               }
             },
           ),

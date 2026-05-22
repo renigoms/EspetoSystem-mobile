@@ -13,7 +13,13 @@ class UserAddPlusCustom extends StatelessWidget {
       width: 31,
       height: 31,
       decoration: decorationContainerCustom(theme),
-      child: SvgPicture.asset('assets/icons/user-plus.svg'),
+      child: SvgPicture.asset(
+        'assets/icons/user-plus.svg',
+        colorFilter: ColorFilter.mode(
+          theme.colorScheme.onSurface,
+          BlendMode.srcIn,
+        ),
+      ),
     );
   }
 }

@@ -40,7 +40,8 @@ enum ImagePathEnum {
 }
 
 enum RoutesPathEnum {
-  forgotPassword("/forgotPassword");
+  forgotPassword("/forgotPassword"),
+  updatePassword("/update-password");
 
   final String value;
 

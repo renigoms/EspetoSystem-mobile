@@ -67,28 +67,23 @@ class _FgInputPageState extends State<FgInputPage> {
                   child: ElevatedButtomCustom(
                     theme: widget.theme,
                     title: MessageScreen.sendLabel.value,
-                    onPressed:
-                        () => setState(
-                          () =>
-                              context
-                                  .read<AuthViewModel>()
-                                  .setPassRecoverySucc(),
-                        ),
+                    onPressed: () async {
+                      if (_emailController.text.isNotEmpty) {
+                        final result = await context.read<AuthViewModel>().recoverPassword(_emailController.text);
+                        if (result != "true") {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Erro ao enviar e-mail: $result")),
+                            );
+                          }
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Por favor, digite seu e-mail.")),
+                        );
+                      }
+                    },
                   ),
-                  // ElevatedButton(
-                  //   onPressed:
-                  //       () => setState(
-                  //         () =>
-                  //             context
-                  //                 .read<AuthViewModel>()
-                  //                 .setPassRecoverySucc(),
-                  //       ),
-                  //   style: buttonStyleBlue(widget.theme),
-                  //   child: Text(
-                  //     MessageScreen.sendLabel.value,
-                  //     style: widget.theme.textTheme.titleLarge,
-                  //   ),
-                  // ),
                 ),
               ],
             ),

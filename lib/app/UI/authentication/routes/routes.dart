@@ -1,6 +1,7 @@
 import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
 import 'package:espetosystem/app/UI/authentication/views/auth_screen.dart';
 import 'package:espetosystem/app/UI/authentication/views/forgot_password_screen.dart';
+import 'package:espetosystem/app/UI/authentication/views/update_password_screen.dart';
 import 'package:go_router/go_router.dart';
 
 final authRoutes = [
@@ -9,5 +10,9 @@ final authRoutes = [
   GoRoute(
     path: RoutesPathEnum.forgotPassword.value,
     builder: (context, state) => ForgotPasswordScreen(),
+  ),
+  GoRoute(
+    path: RoutesPathEnum.updatePassword.value,
+    builder: (context, state) => const UpdatePasswordScreen(),
   ),
 ];

@@ -6,7 +6,7 @@ import 'package:espetosystem/app/core/widgets/elevated_button_custom.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/email_field.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/enter_with_google.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/label_or.dart';
-import 'package:espetosystem/app/UI/authentication/widgets/password_field.dart';
+import 'package:espetosystem/app/core/widgets/password_field.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -84,13 +84,12 @@ class _LoginPageState extends State<LoginPage> {
                 showPasswordField
                     ? MessageScreen.enter.value
                     : MessageScreen.continueLogin.value,
-            onPressed: () {
-              final action = context
-                  .read<AuthViewModel>()
-                  .handleLoginButtonPressed(
-                    _emailController.text,
-                    _passwordController.text,
-                  );
+            onPressed: () async {
+              final authRead = context.read<AuthViewModel>();
+              final action = authRead.handleLoginButtonPressed(
+                _emailController.text,
+                _passwordController.text,
+              );
 
               final email = _emailController.text,
                   password = _passwordController.text;
@@ -100,13 +99,16 @@ class _LoginPageState extends State<LoginPage> {
                   snackMessage(action, context);
                   return;
                 }
-                if (action == true &&
-                    email == "admin@admin.com" &&
-                    password == "admin") {
+
+                final loginResult = await authRead.loginWithEmail(
+                  email,
+                  password,
+                );
+                if (loginResult == "true") {
                   context.go('/home');
                   return;
                 }
-                snackMessage("E-mail ou senha inválida !", context);
+                snackMessage(loginResult, context);
               }
             },
           ),

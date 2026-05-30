@@ -2,11 +2,11 @@
 
 import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
-import 'package:espetosystem/app/UI/authentication/widgets/elevated_button_custom.dart';
+import 'package:espetosystem/app/core/widgets/elevated_button_custom.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/email_field.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/enter_with_google.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/label_or.dart';
-import 'package:espetosystem/app/UI/authentication/widgets/password_field.dart';
+import 'package:espetosystem/app/core/widgets/password_field.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -84,26 +84,31 @@ class _LoginPageState extends State<LoginPage> {
                 showPasswordField
                     ? MessageScreen.enter.value
                     : MessageScreen.continueLogin.value,
-            onPressed: () {
-              final action = context
-                  .read<AuthViewModel>()
-                  .handleLoginButtonPressed(
-                    _emailController.text,
-                    _passwordController.text,
-                  );
-
-              if (action is String) {
-                snackMessage(action, context);
-                return;
-              }
+            onPressed: () async {
+              final authRead = context.read<AuthViewModel>();
+              final action = authRead.handleLoginButtonPressed(
+                _emailController.text,
+                _passwordController.text,
+              );
 
               final email = _emailController.text,
                   password = _passwordController.text;
 
-              if (action == true &&
-                  email == "admin@admin.com" &&
-                  password == "admin") {
-                context.go('/home');
+              if (showPasswordField) {
+                if (action is String) {
+                  snackMessage(action, context);
+                  return;
+                }
+
+                final loginResult = await authRead.loginWithEmail(
+                  email,
+                  password,
+                );
+                if (loginResult == "true") {
+                  context.go('/home');
+                  return;
+                }
+                snackMessage(loginResult, context);
               }
             },
           ),

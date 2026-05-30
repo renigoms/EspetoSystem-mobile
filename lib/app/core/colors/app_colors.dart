@@ -11,6 +11,7 @@ enum AppColorsEnum {
   platinum64percent(Color(0xA2F2F5F9)),
   platinum24percent(Color(0x3CF2F5F9)),
   blackOpacit25percent(Color(0x40000000)),
+  blackOpacit49percent(Color(0x7B000000)),
   whiteOpacit51percent(Color(0x82FFFFFF));
 
   final Color color;

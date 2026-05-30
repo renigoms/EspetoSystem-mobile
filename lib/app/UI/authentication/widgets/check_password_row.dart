@@ -22,7 +22,9 @@ class CheckPasswordRow extends StatelessWidget {
         ),
         Text(
           text,
-          style: theme.textTheme.labelSmall,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onTertiary,
+          ),
           textAlign: TextAlign.justify,
         ),
       ],

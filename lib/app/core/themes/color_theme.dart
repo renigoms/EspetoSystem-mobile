@@ -14,4 +14,16 @@ final darkColorTheme = ThemeData().colorScheme.copyWith(
   onPrimaryContainer: AppColorsEnum.platinum24percent.color,
   error: AppColorsEnum.lobsterpink.color,
 );
-final lightColorTheme = ThemeData().colorScheme.copyWith(surface: Colors.white);
+final lightColorTheme = ThemeData().colorScheme.copyWith(
+  surface: Colors.white,
+  onSurface: Colors.black, //Cor do texto
+  primary: AppColorsEnum.platinum.color,
+  onPrimary: Colors.white,
+  secondary: AppColorsEnum.platinum.color,
+  onSecondary: Colors.black,
+  tertiary: AppColorsEnum.twitterblue.color,
+  onTertiary: AppColorsEnum.blackOpacit49percent.color,
+  primaryContainer: Colors.black,
+  onPrimaryContainer: AppColorsEnum.platinum24percent.color,
+  error: AppColorsEnum.lobsterpink.color,
+);

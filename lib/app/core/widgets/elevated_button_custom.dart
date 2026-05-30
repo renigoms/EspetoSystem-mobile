@@ -19,7 +19,10 @@ class ElevatedButtomCustom extends StatelessWidget {
       child: ElevatedButton(
         style: buttonStyleBlue(theme),
         onPressed: () => onPressed(),
-        child: Text(title, style: theme.textTheme.displaySmall),
+        child: Text(
+          title,
+          style: theme.textTheme.displaySmall?.copyWith(color: Colors.white),
+        ),
       ),
     );
   }

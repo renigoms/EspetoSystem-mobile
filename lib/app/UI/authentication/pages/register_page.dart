@@ -1,10 +1,10 @@
 import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
-import 'package:espetosystem/app/UI/authentication/widgets/default_form_field.dart';
-import 'package:espetosystem/app/UI/authentication/widgets/elevated_button_custom.dart';
+import 'package:espetosystem/app/core/widgets/default_form_field.dart';
+import 'package:espetosystem/app/core/widgets/elevated_button_custom.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/email_field.dart';
-import 'package:espetosystem/app/UI/authentication/widgets/password_field.dart';
-import 'package:espetosystem/app/UI/authentication/widgets/security_password_validate.dart';
+import 'package:espetosystem/app/core/widgets/password_field.dart';
+import 'package:espetosystem/app/core/widgets/security_password_validate.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -92,7 +92,7 @@ class _RegisterPageState extends State<RegisterPage> {
           ElevatedButtomCustom(
             theme: widget.theme,
             title: MessageScreen.buttonRegisterName.value,
-            onPressed: () {
+            onPressed: () async {
               final value = _passwordRegisterController.text;
               if (authViewModelRead.passwordFailVerify) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -104,6 +104,32 @@ class _RegisterPageState extends State<RegisterPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text("As senhas não combinam")),
                 );
+                return;
+              }
+
+              final result = await authViewModelRead.registerWithEmail(
+                _emailRegisterController.text,
+                _passwordRegisterController.text,
+                _nameRegisterController.text,
+              );
+
+              if (!mounted) return;
+
+              if (result == "true") {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      "Cadastro realizado com sucesso! Verifique seu e-mail.",
+                    ),
+                  ),
+                );
+                authViewModelRead.setIsLogin(
+                  true,
+                ); // Volta para a tela de login
+              } else {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(result)));
               }
             },
           ),

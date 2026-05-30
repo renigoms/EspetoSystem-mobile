@@ -1,6 +1,7 @@
 import 'package:espetosystem/app/UI/authentication/components/button_style.dart';
 import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
+import 'package:espetosystem/app/core/widgets/elevated_button_custom.dart';
 import 'package:espetosystem/app/UI/authentication/widgets/email_field.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -63,19 +64,25 @@ class _FgInputPageState extends State<FgInputPage> {
                 ),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed:
-                        () => setState(
-                          () =>
-                              context
-                                  .read<AuthViewModel>()
-                                  .setPassRecoverySucc(),
-                        ),
-                    style: buttonStyleBlue(widget.theme),
-                    child: Text(
-                      MessageScreen.sendLabel.value,
-                      style: widget.theme.textTheme.titleLarge,
-                    ),
+                  child: ElevatedButtomCustom(
+                    theme: widget.theme,
+                    title: MessageScreen.sendLabel.value,
+                    onPressed: () async {
+                      if (_emailController.text.isNotEmpty) {
+                        final result = await context.read<AuthViewModel>().recoverPassword(_emailController.text);
+                        if (result != "true") {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text("Erro ao enviar e-mail: $result")),
+                            );
+                          }
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Por favor, digite seu e-mail.")),
+                        );
+                      }
+                    },
                   ),
                 ),
               ],

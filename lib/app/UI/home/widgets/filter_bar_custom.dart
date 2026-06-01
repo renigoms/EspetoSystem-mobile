@@ -3,39 +3,59 @@ import 'package:flutter/material.dart';
 
 class FilterBarCustom extends StatelessWidget {
   final ThemeData theme;
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
 
-  const FilterBarCustom({super.key, required this.theme});
+  const FilterBarCustom({
+    super.key,
+    required this.theme,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: SizedBox(
-        width: MediaQuery.of(context).size.width,
-        child: Row(
-          spacing: 7,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: List.generate(filterLabelList.length, (index) {
-            return Expanded(
-              child: Container(
-                width: double.infinity,
-                height: 25,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.onPrimaryContainer,
-                  border: Border.all(color: theme.colorScheme.onSecondary),
-                  borderRadius: BorderRadius.circular(38),
+    return SizedBox(
+      height: 34,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: filterLabelList.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 7),
+        itemBuilder: (context, index) {
+          final bool selected = selectedIndex == index;
+
+          return InkWell(
+            onTap: () => onSelected(index),
+            borderRadius: BorderRadius.circular(38),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              width: 78,
+              height: 28,
+              decoration: BoxDecoration(
+                color:
+                    selected
+                        ? theme.colorScheme.tertiary
+                        : theme.colorScheme.surface,
+                border: Border.all(
+                  color:
+                      selected
+                          ? theme.colorScheme.tertiary
+                          : theme.colorScheme.onSecondary.withOpacity(0.55),
                 ),
-                alignment: Alignment.center,
-                child: Text(
-                  filterLabelList[index],
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.onSecondary,
-                  ),
+                borderRadius: BorderRadius.circular(38),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                filterLabelList[index],
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color:
+                      selected ? Colors.white : theme.colorScheme.onSecondary,
+                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                 ),
               ),
-            );
-          }),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

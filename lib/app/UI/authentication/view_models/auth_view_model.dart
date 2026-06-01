@@ -6,7 +6,8 @@ class AuthViewModel extends ChangeNotifier {
   final AuthRepository? _authRepository;
   void Function(String)? onPasswordRecovery;
 
-  AuthViewModel({AuthRepository? authRepository}) : _authRepository = authRepository {
+  AuthViewModel({AuthRepository? authRepository})
+    : _authRepository = authRepository {
     _listenToAuthChanges();
   }
 
@@ -15,9 +16,10 @@ class AuthViewModel extends ChangeNotifier {
       if (data.event == AuthChangeEvent.passwordRecovery) {
         onPasswordRecovery?.call('/update-password');
       }
-      
+
       // Notifica o app quando o login ou logout acontece para o GoRouter reavaliar o redirect
-      if (data.event == AuthChangeEvent.signedIn || data.event == AuthChangeEvent.signedOut) {
+      if (data.event == AuthChangeEvent.signedIn ||
+          data.event == AuthChangeEvent.signedOut) {
         notifyListeners();
       }
     });
@@ -94,20 +96,33 @@ class AuthViewModel extends ChangeNotifier {
   Future<String> loginWithEmail(String email, String password) async {
     if (_authRepository == null) return "Erro de configuração";
     try {
-      final result = await _authRepository!.signInWithEmail(email, password);
+      final result = await _authRepository.signInWithEmail(email, password);
       if (result.user != null) {
         return "true";
       }
       return "Erro ao fazer login";
+    } on AuthException catch (e) {
+      if (e.code == 'invalid_credentials') {
+        return "E-mail ou senha incorretos. Se você costuma entrar com o Google, tente recuperar sua senha para definir uma senha de acesso.";
+      }
+      return e.message;
     } catch (e) {
-      return e.toString();
+      return "Ocorreu um erro inesperado: ${e.toString()}";
     }
   }
 
-  Future<String> registerWithEmail(String email, String password, String name) async {
+  Future<String> registerWithEmail(
+    String email,
+    String password,
+    String name,
+  ) async {
     if (_authRepository == null) return "Erro de configuração";
     try {
-      final result = await _authRepository!.signUpWithEmail(email, password, name);
+      final result = await _authRepository!.signUpWithEmail(
+        email,
+        password,
+        name,
+      );
       if (result.user != null) {
         return "true";
       }
@@ -118,7 +133,8 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<String> continueWithGoogleAction() async {
-    if (_authRepository == null) return "Erro de configuração: Repositório não inicializado";
+    if (_authRepository == null)
+      return "Erro de configuração: Repositório não inicializado";
     try {
       final result = await _authRepository!.signInWithGoogle();
 
@@ -138,7 +154,8 @@ class AuthViewModel extends ChangeNotifier {
       setPassRecoverySucc();
       return "true";
     } on AuthException catch (e) {
-      return e.message; // Retorna a mensagem de erro do Supabase (ex: "User not found")
+      return e
+          .message; // Retorna a mensagem de erro do Supabase (ex: "User not found")
     } catch (e) {
       return "Ocorreu um erro inesperado: $e";
     }

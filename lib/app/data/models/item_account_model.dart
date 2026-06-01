@@ -1,25 +1,30 @@
 class ItemAccountModel {
   final String? id;
   final int quantity;
-  final String description;
+  final String itemId;
   final String accountId;
   final double unitValue;
+  final DateTime createdAt;
 
   ItemAccountModel({
     this.id,
     required this.quantity,
-    required this.description,
+    required this.itemId,
     required this.accountId,
     required this.unitValue,
-  });
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
 
   factory ItemAccountModel.fromJson(Map<String, dynamic> json) {
     return ItemAccountModel(
       id: json['id'],
       quantity: json['quantity'] ?? 0,
-      description: json['description'] ?? '',
+      itemId: json['item_id'] ?? '',
       accountId: json['account_id'] ?? '',
       unitValue: (json['unit_value'] ?? 0).toDouble(),
+      createdAt: json['created_at'] != null 
+          ? DateTime.parse(json['created_at']) 
+          : DateTime.now(),
     );
   }
 
@@ -27,9 +32,10 @@ class ItemAccountModel {
     return {
       if (id != null) 'id': id,
       'quantity': quantity,
-      'description': description,
+      'item_id': itemId,
       'account_id': accountId,
       'unit_value': unitValue,
+      'created_at': createdAt.toIso8601String(),
     };
   }
 }

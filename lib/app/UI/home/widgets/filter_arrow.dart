@@ -4,15 +4,30 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class FilterArrow extends StatelessWidget {
   final ThemeData theme;
-  const FilterArrow({super.key, required this.theme});
+  final bool isAscending;
+  final VoidCallback onTap;
+
+  const FilterArrow({
+    super.key,
+    required this.theme,
+    required this.isAscending,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 31,
-      height: 31,
-      decoration: decorationContainerCustom(theme),
-      child: Icon(LucideIcons.arrowUp, color: theme.colorScheme.onSurface),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        width: 31,
+        height: 31,
+        decoration: decorationContainerCustom(theme),
+        child: Icon(
+          isAscending ? LucideIcons.arrowDown : LucideIcons.arrowUp,
+          color: theme.colorScheme.onSurface,
+        ),
+      ),
     );
   }
 }

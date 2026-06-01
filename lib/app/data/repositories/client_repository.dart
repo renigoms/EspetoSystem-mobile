@@ -1,58 +1,111 @@
-import '../models/client_model.dart';
-import '../services/supabase_service.dart';
-import '../services/local_cache_service.dart';
-import '../services/network_info.dart';
+import 'package:flutter/foundation.dart';
+import 'package:espetosystem/app/data/models/client_model.dart';
+import 'package:espetosystem/app/data/models/address_model.dart';
+import 'package:espetosystem/app/data/services/base_data_source.dart';
+import 'package:espetosystem/app/data/services/network_info.dart';
+import 'package:espetosystem/app/data/repositories/base_repository.dart';
 
-class ClientRepository {
-  final SupabaseService remoteDataSource;
-  final LocalCacheService localDataSource;
-  final NetworkInfo networkInfo;
-
+class ClientRepository extends BaseRepository<ClientModel> {
   ClientRepository({
-    required this.remoteDataSource,
-    required this.localDataSource,
-    required this.networkInfo,
-  });
+    required IBaseRemoteDataSource remoteDataSource,
+    required IBaseLocalDataSource localDataSource,
+    required NetworkInfo networkInfo,
+  }) : super(
+         remoteDataSource: remoteDataSource,
+         localDataSource: localDataSource,
+         networkInfo: networkInfo,
+         tableName: 'client',
+         cacheKey: 'cached_client',
+       );
 
-  static const String _cacheKey = 'cached_clients';
+  @override
+  ClientModel fromJson(Map<String, dynamic> json) => ClientModel.fromJson(json);
 
-  Future<List<ClientModel>> getClients() async {
+  @override
+  Map<String, dynamic> toJson(ClientModel model) => model.toJson();
+
+  // Custom method for Client specific logic if needed
+  Future<List<ClientModel>> getClients(String userId) async {
+    final clients = await getAllForUser(userId);
+    final userAddrCacheKey = 'cached_address_$userId';
+
     if (await networkInfo.isConnected) {
+      final ids = clients.where((c) => c.id != null).map((c) => c.id!).toList();
+      if (ids.isEmpty) return clients;
+
       try {
-        final List<Map<String, dynamic>> data = await remoteDataSource.fetchAll('clients');
-        final clients = data.map((e) => ClientModel.fromJson(e)).toList();
+        final List<Map<String, dynamic>> addrs = await remoteDataSource
+            .fetchWhereIn('address', 'client_id', ids);
         
-        // Update cache
-        await localDataSource.save(_cacheKey, data);
+        // Save address to user-specific cache
+        await localDataSource.save(userAddrCacheKey, addrs);
         
-        return clients;
+        return _mergeClientsAndAddresses(clients, addrs);
       } catch (e) {
-        // Fallback to cache if remote fails
-        return _getCachedClients();
+        debugPrint('Error fetching address from remote: $e');
+        final cachedAddrs = localDataSource.get(userAddrCacheKey) as List?;
+        return _mergeClientsAndAddresses(clients, cachedAddrs?.cast<Map<String, dynamic>>() ?? []);
       }
     } else {
-      return _getCachedClients();
+      final cachedAddrs = localDataSource.get(userAddrCacheKey) as List?;
+      return _mergeClientsAndAddresses(clients, cachedAddrs?.cast<Map<String, dynamic>>() ?? []);
     }
   }
 
-  Future<List<ClientModel>> _getCachedClients() async {
-    final cachedData = localDataSource.get(_cacheKey);
-    if (cachedData != null && cachedData is List) {
-      return (cachedData).map((e) => ClientModel.fromJson(e)).toList();
-    }
-    return [];
+  List<ClientModel> _mergeClientsAndAddresses(List<ClientModel> clients, List<Map<String, dynamic>> addrs) {
+    final Map<String, Map<String, dynamic>> addrByClient = {
+      for (final a in addrs) (a['client_id'] ?? '').toString(): a,
+    };
+
+    return clients.map((c) {
+      final addrData = c.id != null ? addrByClient[c.id] : null;
+      if (addrData != null) {
+        return ClientModel(
+          id: c.id,
+          userId: c.userId,
+          name: c.name,
+          description: c.description,
+          phoneNumber: c.phoneNumber,
+          cpf: c.cpf,
+          photoPath: c.photoPath,
+          address: AddressModel.fromJson(addrData),
+        );
+      }
+      return c;
+    }).toList();
   }
 
-  Future<void> saveClient(ClientModel client) async {
-    if (await networkInfo.isConnected) {
-      await remoteDataSource.upsert('clients', client.toJson());
-      // Re-fetch or update local cache manually
-    } else {
-      // Store in a "to-sync" queue if offline
-      // For simplicity in this example, we'll just save to local cache
-      final List<ClientModel> current = await _getCachedClients();
-      current.add(client);
-      await localDataSource.save(_cacheKey, current.map((e) => e.toJson()).toList());
+  Future<ClientModel?> saveClient(ClientModel client, String userId) async {
+    // 1. Save the client first
+    final savedClient = await saveForUser(client, userId);
+
+    if (savedClient != null && client.address != null) {
+      // 2. Prepare address data with the new client ID
+      final addressData = client.address!.toJson();
+      addressData['client_id'] = savedClient.id;
+
+      try {
+        if (await networkInfo.isConnected) {
+          // 3. Save to remote
+          final savedAddrMap = await remoteDataSource.upsert('address', addressData);
+
+          // 4. Return client with the saved address (including its new ID)
+          return ClientModel(
+            id: savedClient.id,
+            userId: savedClient.userId,
+            name: savedClient.name,
+            description: savedClient.description,
+            phoneNumber: savedClient.phoneNumber,
+            cpf: savedClient.cpf,
+            photoPath: savedClient.photoPath,
+            address: AddressModel.fromJson(savedAddrMap),
+          );
+        }
+      } catch (e) {
+        debugPrint('Error saving address for client ${savedClient.id}: $e');
+      }
     }
+
+    return savedClient;
   }
 }

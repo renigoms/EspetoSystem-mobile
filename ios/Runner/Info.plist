@@ -56,5 +56,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Precisamos da câmera para adicionar a foto do cliente.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Precisamos da galeria para escolher a foto do cliente.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Precisamos permitir salvar fotos do cliente.</string>
 </dict>
 </plist>

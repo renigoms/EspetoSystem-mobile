@@ -1,21 +1,24 @@
 class AccountModel {
   final String? id;
   final String clientId;
-  final DateTime? lastPurchaseDate;
+  final DateTime createdAt;
+  final String status;
 
   AccountModel({
     this.id,
     required this.clientId,
-    this.lastPurchaseDate,
-  });
+    DateTime? createdAt,
+    this.status = 'LIMPA',
+  }) : createdAt = createdAt ?? DateTime.now();
 
   factory AccountModel.fromJson(Map<String, dynamic> json) {
     return AccountModel(
       id: json['id'],
       clientId: json['client_id'] ?? '',
-      lastPurchaseDate: json['last_purchase_date'] != null 
-          ? DateTime.parse(json['last_purchase_date']) 
-          : null,
+      createdAt: json['created_at'] != null 
+          ? DateTime.parse(json['created_at']) 
+          : DateTime.now(),
+      status: json['status'] ?? 'LIMPA',
     );
   }
 
@@ -23,7 +26,8 @@ class AccountModel {
     return {
       if (id != null) 'id': id,
       'client_id': clientId,
-      'last_purchase_date': lastPurchaseDate?.toIso8601String(),
+      'created_at': createdAt.toIso8601String(),
+      'status': status,
     };
   }
 }

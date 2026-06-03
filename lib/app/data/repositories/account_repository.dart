@@ -22,4 +22,9 @@ class AccountRepository extends BaseRepository<AccountModel> {
 
   @override
   Map<String, dynamic> toJson(AccountModel model) => model.toJson();
+
+  Future<AccountModel?> getByClientId(String clientId) async {
+    final results = await remoteDataSource.fetchWithFilter(tableName, 'client_id', clientId);
+    return results.isNotEmpty ? fromJson(results.first) : null;
+  }
 }

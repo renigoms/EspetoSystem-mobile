@@ -9,7 +9,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'dart:math';
 
 class ClientFormSheet extends StatefulWidget {
-  const ClientFormSheet({super.key});
+  final ClientModel? client;
+  const ClientFormSheet({super.key, this.client});
 
   @override
   State<ClientFormSheet> createState() => _ClientFormSheetState();
@@ -19,15 +20,33 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
   static final Random _random = Random();
   final _formKey = GlobalKey<FormState>();
   final _imagePicker = ImagePicker();
-  final _nameController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _cpfController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _streetController = TextEditingController();
-  final _neighborhoodController = TextEditingController();
-  final _numberController = TextEditingController();
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _cpfController;
+  late TextEditingController _phoneController;
+  late TextEditingController _streetController;
+  late TextEditingController _neighborhoodController;
+  late TextEditingController _numberController;
 
   String? _photoPath;
+  String? _addressId;
+
+  @override
+  void initState() {
+    super.initState();
+    final client = widget.client;
+    _nameController = TextEditingController(text: client?.name);
+    _descriptionController = TextEditingController(text: client?.description);
+    _cpfController = TextEditingController(text: client?.cpf);
+    _phoneController = TextEditingController(text: client?.phoneNumber);
+    _streetController = TextEditingController(text: client?.address?.street);
+    _neighborhoodController =
+        TextEditingController(text: client?.address?.neighborhood);
+    _numberController =
+        TextEditingController(text: client?.address?.number.toString());
+    _photoPath = client?.photoPath;
+    _addressId = client?.address?.id;
+  }
 
   @override
   void dispose() {
@@ -145,17 +164,20 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
     }
 
     final number = int.tryParse(_numberController.text.trim()) ?? 0;
-    final clientId = _generateUuidV4();
+    final isEdit = widget.client != null;
+    final clientId = widget.client?.id ?? _generateUuidV4();
 
     Navigator.of(context).pop(
       ClientModel(
         id: clientId,
+        userId: widget.client?.userId,
         name: _nameController.text.trim(),
         description: _descriptionController.text.trim(),
         phoneNumber: _phoneController.text.trim(),
         cpf: _cpfController.text.trim(),
         photoPath: _photoPath,
         address: AddressModel(
+          id: _addressId,
           clientId: clientId,
           street: _streetController.text.trim(),
           neighborhood: _neighborhoodController.text.trim(),
@@ -282,7 +304,9 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                       children: [
                         Expanded(
                           child: Text(
-                            'Cadastrar cliente',
+                            widget.client == null
+                                ? 'Cadastrar cliente'
+                                : 'Editar cliente',
                             style: theme.textTheme.titleLarge?.copyWith(
                               color: theme.colorScheme.onSurface,
                             ),
@@ -293,11 +317,14 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                         const SizedBox(width: 12),
                         SizedBox(
                           height: 48,
-                          width: 120,
+                          width: 140,
                           child: ElevatedButtomCustom(
                             theme: theme,
                             onPressed: _save,
-                            title: 'Salvar',
+                            title:
+                                widget.client == null
+                                    ? 'Salvar'
+                                    : 'Salvar alterações',
                           ),
                         ),
                       ],

@@ -2,9 +2,9 @@ import 'package:espetosystem/app/core/colors/app_colors.dart';
 import 'package:flutter/material.dart';
 
 final darkColorTheme = ThemeData().colorScheme.copyWith(
-  surface: AppColorsEnum.jetblack.color,
+  surface: AppColorsEnum.carbomblack.color,
   onSurface: Colors.white, //Cor do texto
-  primary: AppColorsEnum.carbomblack.color,
+  primary: AppColorsEnum.jetblack.color,
   onPrimary: AppColorsEnum.carbomblackOpacit51Percent.color,
   secondary: AppColorsEnum.gunmetal.color,
   onSecondary: AppColorsEnum.whiteOpacit51percent.color,

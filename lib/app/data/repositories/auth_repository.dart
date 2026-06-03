@@ -99,6 +99,17 @@ class AuthRepository {
     );
   }
 
+  Future<void> updateProfile({String? name, String? avatarUrl}) async {
+    await supabaseClient.auth.updateUser(
+      UserAttributes(
+        data: {
+          if (name != null) 'full_name': name,
+          if (avatarUrl != null) 'avatar_url': avatarUrl,
+        },
+      ),
+    );
+  }
+
   Future<AuthProfileModel?> getProfile(String userId) async {
     final data = await supabaseClient
         .from('profile')

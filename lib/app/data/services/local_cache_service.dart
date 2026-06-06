@@ -9,19 +9,27 @@ class LocalCacheService implements IBaseLocalDataSource {
 
   @override
   Future<void> save(String key, dynamic value) async {
-    if (value is String) {
-      await prefs.setString(key, value);
-    } else if (value is int) {
-      await prefs.setInt(key, value);
-    } else if (value is double) {
-      await prefs.setDouble(key, value);
-    } else if (value is bool) {
-      await prefs.setBool(key, value);
-    } else if (value is List<String>) {
-      await prefs.setStringList(key, value);
-    } else {
-      await prefs.setString(key, json.encode(value));
-    }
+    await (switch (value) {
+      String v => prefs.setString(key, v),
+      int v => prefs.setInt(key, v),
+      double v => prefs.setDouble(key, v),
+      bool v => prefs.setBool(key, v),
+      List<String> v => prefs.setStringList(key, v),
+      _ => prefs.setString(key, json.encode(value)),
+    });
+    // if (value is String) {
+    //   await prefs.setString(key, value);
+    // } else if (value is int) {
+    //   await prefs.setInt(key, value);
+    // } else if (value is double) {
+    //   await prefs.setDouble(key, value);
+    // } else if (value is bool) {
+    //   await prefs.setBool(key, value);
+    // } else if (value is List<String>) {
+    //   await prefs.setStringList(key, value);
+    // } else {
+    //   await prefs.setString(key, json.encode(value));
+    // }
   }
 
   @override

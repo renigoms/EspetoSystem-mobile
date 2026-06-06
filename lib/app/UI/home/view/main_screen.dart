@@ -1,4 +1,4 @@
-import 'package:espetosystem/app/UI/home/components/client_form_sheet.dart';
+import 'package:espetosystem/app/UI/home/widgets/client_form_sheet.dart';
 import 'package:espetosystem/app/UI/home/pages/client_search_page.dart';
 import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
 import 'package:espetosystem/app/UI/home/widgets/app_bar.dart';
@@ -182,7 +182,10 @@ class MainScreen extends StatelessWidget {
                                                 const SizedBox(height: 10),
                                         itemBuilder: (context, index) {
                                           final client = clients[index];
-                                          final status = viewModel.accountStatuses[client.id] ?? 'LIMPA';
+                                          final status =
+                                              viewModel.accountStatuses[client
+                                                  .id] ??
+                                              'LIMPA';
                                           return ClientCard(
                                             client: client,
                                             status: status,

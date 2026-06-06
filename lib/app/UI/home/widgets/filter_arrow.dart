@@ -1,4 +1,4 @@
-import 'package:espetosystem/app/UI/home/components/components.dart';
+import 'package:espetosystem/app/UI/home/components/decorations.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 

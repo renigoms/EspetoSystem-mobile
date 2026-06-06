@@ -5,7 +5,6 @@ import 'package:espetosystem/app/UI/authentication/views/update_password_screen.
 import 'package:go_router/go_router.dart';
 
 final authRoutes = [
-  // Lembrar de desbloquear depois
   GoRoute(path: '/', builder: (context, state) => AuthScreen()),
   GoRoute(
     path: RoutesPathEnum.forgotPassword.value,

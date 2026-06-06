@@ -1,12 +1,15 @@
+import 'package:espetosystem/app/UI/home/components/masks_fields.dart';
+import 'package:espetosystem/app/UI/home/components/modal_custom.dart';
+import 'package:espetosystem/app/UI/home/components/validations.dart';
+import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
 import 'package:espetosystem/app/core/widgets/elevated_button_custom.dart';
 import 'package:espetosystem/app/data/models/address_model.dart';
 import 'package:espetosystem/app/data/models/client_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:lucide_icons_flutter/lucide_icons.dart';
-import 'dart:math';
+import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 class ClientFormSheet extends StatefulWidget {
   final ClientModel? client;
@@ -17,9 +20,8 @@ class ClientFormSheet extends StatefulWidget {
 }
 
 class _ClientFormSheetState extends State<ClientFormSheet> {
-  static final Random _random = Random();
   final _formKey = GlobalKey<FormState>();
-  final _imagePicker = ImagePicker();
+  // final _imagePicker = ImagePicker();
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _cpfController;
@@ -27,8 +29,6 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
   late TextEditingController _streetController;
   late TextEditingController _neighborhoodController;
   late TextEditingController _numberController;
-
-  String? _photoPath;
   String? _addressId;
 
   @override
@@ -40,11 +40,12 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
     _cpfController = TextEditingController(text: client?.cpf);
     _phoneController = TextEditingController(text: client?.phoneNumber);
     _streetController = TextEditingController(text: client?.address?.street);
-    _neighborhoodController =
-        TextEditingController(text: client?.address?.neighborhood);
-    _numberController =
-        TextEditingController(text: client?.address?.number.toString());
-    _photoPath = client?.photoPath;
+    _neighborhoodController = TextEditingController(
+      text: client?.address?.neighborhood,
+    );
+    _numberController = TextEditingController(
+      text: client?.address?.number.toString(),
+    );
     _addressId = client?.address?.id;
   }
 
@@ -60,112 +61,15 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
     super.dispose();
   }
 
-  bool _validateCPF(String cpf) {
-    final cleanCPF = cpf.replaceAll(RegExp(r'[^0-9]'), '');
-
-    if (cleanCPF.length != 11) return false;
-
-    if (RegExp(r'^(\d)\1+$').hasMatch(cleanCPF)) return false;
-
-    List<int> digits = cleanCPF.split('').map((d) => int.parse(d)).toList();
-
-    // Validate 1st digit
-    int sum = 0;
-    for (int i = 0; i < 9; i++) {
-      sum += digits[i] * (10 - i);
-    }
-    int res = (sum * 10) % 11;
-    if (res == 10) res = 0;
-    if (res != digits[9]) return false;
-
-    // Validate 2nd digit
-    sum = 0;
-    for (int i = 0; i < 10; i++) {
-      sum += digits[i] * (11 - i);
-    }
-    res = (sum * 10) % 11;
-    if (res == 10) res = 0;
-    if (res != digits[10]) return false;
-
-    return true;
-  }
-
-  Future<void> _pickPhoto(ImageSource source) async {
-    final picked = await _imagePicker.pickImage(
-      source: source,
-      imageQuality: 85,
-    );
-
-    if (picked == null || !mounted) {
-      return;
-    }
-
-    setState(() {
-      _photoPath = picked.path;
-    });
-  }
-
-  Future<void> _openPhotoOptions() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      useRootNavigator: true,
-      builder: (context) {
-        final theme = Theme.of(context);
-
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: SvgPicture.asset(
-                  'assets/icons/camera.svg',
-                  width: 24,
-                  height: 24,
-                ),
-                title: const Text('Tirar foto'),
-                onTap: () async {
-                  Navigator.of(context).pop();
-                  await _pickPhoto(ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const Icon(LucideIcons.image),
-                title: const Text('Escolher da galeria'),
-                onTap: () async {
-                  Navigator.of(context).pop();
-                  await _pickPhoto(ImageSource.gallery);
-                },
-              ),
-              if (_photoPath != null)
-                ListTile(
-                  leading: Icon(
-                    Icons.delete_outline,
-                    color: theme.colorScheme.error,
-                  ),
-                  title: Text(
-                    'Remover foto',
-                    style: TextStyle(color: theme.colorScheme.error),
-                  ),
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    setState(() => _photoPath = null);
-                  },
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   void _save() {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
     final number = int.tryParse(_numberController.text.trim()) ?? 0;
-    final isEdit = widget.client != null;
-    final clientId = widget.client?.id ?? _generateUuidV4();
+    // final isEdit = widget.client != null;
+    // final clientId = widget.client?.id ?? _generateUuidV4();
+    final clientId = widget.client?.id ?? Uuid().v4();
 
     Navigator.of(context).pop(
       ClientModel(
@@ -175,7 +79,7 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
         description: _descriptionController.text.trim(),
         phoneNumber: _phoneController.text.trim(),
         cpf: _cpfController.text.trim(),
-        photoPath: _photoPath,
+        photoPath: context.read<HomeViewModel>().photoPath,
         address: AddressModel(
           id: _addressId,
           clientId: clientId,
@@ -185,22 +89,6 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
         ),
       ),
     );
-  }
-
-  String _generateUuidV4() {
-    final bytes = List<int>.generate(16, (_) => _random.nextInt(256));
-    bytes[6] = (bytes[6] & 0x0f) | 0x40;
-    bytes[8] = (bytes[8] & 0x3f) | 0x80;
-
-    String toHex(int value) => value.toRadixString(16).padLeft(2, '0');
-
-    return [
-      bytes.sublist(0, 4).map(toHex).join(),
-      bytes.sublist(4, 6).map(toHex).join(),
-      bytes.sublist(6, 8).map(toHex).join(),
-      bytes.sublist(8, 10).map(toHex).join(),
-      bytes.sublist(10, 16).map(toHex).join(),
-    ].join('-');
   }
 
   InputDecoration _inputDecoration(ThemeData theme) {
@@ -249,9 +137,7 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
           validator: validator,
           inputFormatters: inputFormatters,
           maxLength: maxLength,
-          decoration: _inputDecoration(theme).copyWith(
-            counterText: "",
-          ),
+          decoration: _inputDecoration(theme).copyWith(counterText: ""),
         ),
       ],
     );
@@ -260,7 +146,8 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
   Widget _photoButton(ThemeData theme) {
     return InkWell(
       borderRadius: BorderRadius.circular(6),
-      onTap: _openPhotoOptions,
+      onTap: () => openPhotoOptions(context),
+      // onTap: _openPhotoOptions,
       child: SizedBox(
         width: 31,
         height: 31,
@@ -367,7 +254,7 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                         if (value == null || value.trim().isEmpty) {
                           return 'Informe o CPF';
                         }
-                        if (!_validateCPF(value)) {
+                        if (!validateCPF(value)) {
                           return 'CPF inválido';
                         }
                         return null;
@@ -465,63 +352,6 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class CpfInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final text = newValue.text;
-    if (newValue.selection.baseOffset == 0) return newValue;
-
-    final buffer = StringBuffer();
-    for (int i = 0; i < text.length; i++) {
-      buffer.write(text[i]);
-      final index = i + 1;
-      if (index == 3 || index == 6) {
-        if (index != text.length) buffer.write('.');
-      } else if (index == 9) {
-        if (index != text.length) buffer.write('-');
-      }
-    }
-
-    final string = buffer.toString();
-    return newValue.copyWith(
-      text: string,
-      selection: TextSelection.collapsed(offset: string.length),
-    );
-  }
-}
-
-class PhoneInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    final text = newValue.text;
-    if (newValue.selection.baseOffset == 0) return newValue;
-
-    final buffer = StringBuffer();
-    for (int i = 0; i < text.length; i++) {
-      if (i == 0) buffer.write('(');
-      buffer.write(text[i]);
-      final index = i + 1;
-      if (index == 2) {
-        buffer.write(') ');
-      } else if (index == 7) {
-        buffer.write('-');
-      }
-    }
-
-    final string = buffer.toString();
-    return newValue.copyWith(
-      text: string,
-      selection: TextSelection.collapsed(offset: string.length),
     );
   }
 }

@@ -2,7 +2,6 @@ import 'package:espetosystem/app/UI/authentication/messages/text_enum.dart';
 import 'package:espetosystem/app/UI/authentication/pages/fp_input_page.dart';
 import 'package:espetosystem/app/UI/authentication/pages/fp_success_page.dart';
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
-import 'package:espetosystem/app/core/themes/text_theme.dart';
 import 'package:espetosystem/app/core/themes/theme_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

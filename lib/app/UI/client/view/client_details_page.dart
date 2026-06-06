@@ -1,6 +1,6 @@
 import 'package:espetosystem/app/data/models/payment_model.dart';
 import 'package:flutter/services.dart';
-import 'package:espetosystem/app/UI/home/components/client_form_sheet.dart';
+import 'package:espetosystem/app/UI/home/widgets/client_form_sheet.dart';
 import 'package:espetosystem/app/UI/home/widgets/client_avatar.dart';
 import 'package:espetosystem/app/data/models/address_model.dart';
 import 'package:espetosystem/app/data/models/client_model.dart';
@@ -62,12 +62,18 @@ class _ClientDetailsShellPageState extends State<ClientDetailsShellPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: Icon(LucideIcons.edit, color: theme.colorScheme.tertiary),
+                leading: Icon(
+                  LucideIcons.edit,
+                  color: theme.colorScheme.tertiary,
+                ),
                 title: const Text('Editar dados'),
                 onTap: () => Navigator.of(ctx).pop('edit'),
               ),
               ListTile(
-                leading: Icon(LucideIcons.trash2, color: theme.colorScheme.error),
+                leading: Icon(
+                  LucideIcons.trash2,
+                  color: theme.colorScheme.error,
+                ),
                 title: Text(
                   'Excluir cliente',
                   style: TextStyle(color: theme.colorScheme.error),
@@ -92,14 +98,16 @@ class _ClientDetailsShellPageState extends State<ClientDetailsShellPage> {
         builder: (context) => ClientFormSheet(client: client),
       );
 
-      debugPrint('DEBUG: Formulário de edição fechou. Retornou: ${result?.name}');
+      debugPrint(
+        'DEBUG: Formulário de edição fechou. Retornou: ${result?.name}',
+      );
 
       if (result != null && context.mounted) {
         final viewModel = context.read<HomeViewModel>();
         debugPrint('DEBUG: Chamando viewModel.saveClient...');
         final savedClient = await viewModel.saveClient(result);
         debugPrint('DEBUG: viewModel retornou: ${savedClient?.name}');
-        
+
         if (savedClient != null && mounted) {
           setState(() {
             debugPrint('DEBUG: Atualizando o UI com o cliente atualizado.');
@@ -111,60 +119,70 @@ class _ClientDetailsShellPageState extends State<ClientDetailsShellPage> {
       // Lógica de exclusão (inalterada, mas agora em um contexto seguro)
       final confirm = await showDialog<bool>(
         context: context,
-        builder: (ctx) => Dialog(
-          backgroundColor: theme.colorScheme.secondary,
-          insetPadding: const EdgeInsets.all(24.0),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 400),
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Excluir cliente',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16.0),
-                Text(
-                  'Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.white70,
-                  ),
-                ),
-                const SizedBox(height: 24.0),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+        builder:
+            (ctx) => Dialog(
+              backgroundColor: theme.colorScheme.secondary,
+              insetPadding: const EdgeInsets.all(24.0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 400),
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextButton(
-                      onPressed: () => Navigator.of(ctx).pop(false),
-                      child: Text(
-                        'Cancelar',
-                        style: TextStyle(color: theme.colorScheme.onSurface.withValues(alpha: 0.7)),
+                    Text(
+                      'Excluir cliente',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.error,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
+                    const SizedBox(height: 16.0),
+                    Text(
+                      'Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: Colors.white70,
                       ),
-                      onPressed: () => Navigator.of(ctx).pop(true),
-                      child: const Text('Excluir', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(height: 24.0),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.of(ctx).pop(false),
+                          child: Text(
+                            'Cancelar',
+                            style: TextStyle(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: 0.7,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.error,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                          ),
+                          onPressed: () => Navigator.of(ctx).pop(true),
+                          child: const Text(
+                            'Excluir',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
       );
 
       if (confirm == true && context.mounted) {
@@ -213,7 +231,6 @@ class _ClientDetailsShellPageState extends State<ClientDetailsShellPage> {
               ),
               const SizedBox(width: 8),
             ],
-
           ),
         ),
         backgroundColor: theme.colorScheme.surface,
@@ -288,9 +305,9 @@ class _ClientDetailsPageState extends State<ClientDetailsPage> {
               child: Text(
                 'Nenhum item encontrado.',
                 style: GoogleFonts.roboto(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(
-                    alpha: 0.5,
-                  ),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.5),
                   fontSize: 14,
                 ),
               ),
@@ -301,8 +318,12 @@ class _ClientDetailsPageState extends State<ClientDetailsPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(4),
+              ),
             ),
             child: Row(
               children: [
@@ -350,7 +371,9 @@ class _ClientPaymentsPageState extends State<ClientPaymentsPage> {
       if (mounted) {
         final client = _ClientDetailsScope.clientOf(context);
         if (client.id != null) {
-          context.read<HomeViewModel>().loadItemsForClient(client.id!); // This also loads payments
+          context.read<HomeViewModel>().loadItemsForClient(
+            client.id!,
+          ); // This also loads payments
         }
       }
     });
@@ -399,9 +422,9 @@ class _ClientPaymentsPageState extends State<ClientPaymentsPage> {
               child: Text(
                 'Nenhum pagamento registrado.',
                 style: GoogleFonts.roboto(
-                  color: Theme.of(context).colorScheme.onSurface.withValues(
-                    alpha: 0.5,
-                  ),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.5),
                   fontSize: 14,
                 ),
               ),
@@ -412,8 +435,12 @@ class _ClientPaymentsPageState extends State<ClientPaymentsPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(4),
+              ),
             ),
             child: Row(
               children: [
@@ -677,7 +704,6 @@ class _ItemsTitle extends StatelessWidget {
                 await viewModel.addItemsToClientAccount(client.id!, result);
               }
             }
-
           },
           visualDensity: VisualDensity.compact,
           constraints: const BoxConstraints.tightFor(width: 28, height: 28),
@@ -740,13 +766,15 @@ class _PurchasedItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final mutedTextColor = theme.colorScheme.onSurface.withValues(
-      alpha: 0.74,
-    );
+    final mutedTextColor = theme.colorScheme.onSurface.withValues(alpha: 0.74);
 
     // Calcula o total (Qtd * V. Unit)
-    final double unitValue = double.tryParse(
-          item.value.replaceAll('R\$ ', '').replaceAll('.', '').replaceAll(',', '.'),
+    final double unitValue =
+        double.tryParse(
+          item.value
+              .replaceAll('R\$ ', '')
+              .replaceAll('.', '')
+              .replaceAll(',', '.'),
         ) ??
         0;
     final double total = item.quantity * unitValue;
@@ -841,14 +869,15 @@ class _PaymentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     // Formatação nativa de data sem depender do pacote intl
     final day = payment.date.day.toString().padLeft(2, '0');
     final month = payment.date.month.toString().padLeft(2, '0');
     final year = payment.date.year.toString();
     final String formattedDate = '$day/$month/$year';
-    
-    final String formattedValue = 'R\$ ${payment.value.toStringAsFixed(2).replaceAll('.', ',')}';
+
+    final String formattedValue =
+        'R\$ ${payment.value.toStringAsFixed(2).replaceAll('.', ',')}';
 
     return Container(
       height: 46,
@@ -1041,7 +1070,7 @@ class _AddPaymentDialogState extends State<_AddPaymentDialog> {
               keyboardType: TextInputType.number,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
-                CurrencyInputFormatter(), 
+                CurrencyInputFormatter(),
               ],
             ),
             const SizedBox(height: 32.0),
@@ -1056,12 +1085,11 @@ class _AddPaymentDialogState extends State<_AddPaymentDialog> {
                       .replaceAll('.', '')
                       .replaceAll(',', '.');
                   final double valor = double.tryParse(rawValue) ?? 0;
-                  
+
                   if (valor > 0) {
-                    Navigator.of(context).pop({
-                      'valor': valor,
-                      'metodo': 'Dinheiro', 
-                    });
+                    Navigator.of(
+                      context,
+                    ).pop({'valor': valor, 'metodo': 'Dinheiro'});
                   }
                 }
               },
@@ -1090,16 +1118,20 @@ final ClientModel _fallbackClient = ClientModel(
 class CurrencyInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
     if (newValue.selection.baseOffset == 0) {
       return newValue;
     }
 
     double value = double.parse(newValue.text);
-    final formatter = 'R\$ ${(value / 100).toStringAsFixed(2).replaceAll('.', ',')}';
+    final formatter =
+        'R\$ ${(value / 100).toStringAsFixed(2).replaceAll('.', ',')}';
 
     return newValue.copyWith(
-        text: formatter,
-        selection: TextSelection.collapsed(offset: formatter.length));
+      text: formatter,
+      selection: TextSelection.collapsed(offset: formatter.length),
+    );
   }
 }

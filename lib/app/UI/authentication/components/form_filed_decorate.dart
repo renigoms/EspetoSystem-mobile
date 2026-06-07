@@ -5,6 +5,8 @@ InputDecoration formFieldDecoration(ThemeData theme, Widget? sufixIcon) =>
       suffixIcon: sufixIcon,
       filled: true,
       fillColor: theme.colorScheme.onPrimary,
+      errorMaxLines: 3,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(7),
         borderSide: BorderSide(color: theme.colorScheme.onSecondary),

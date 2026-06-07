@@ -2,6 +2,7 @@ import 'package:espetosystem/app/UI/home/components/masks_fields.dart';
 import 'package:espetosystem/app/UI/home/components/modal_custom.dart';
 import 'package:espetosystem/app/UI/home/components/validations.dart';
 import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
+import 'package:espetosystem/app/core/widgets/default_form_field.dart';
 import 'package:espetosystem/app/core/widgets/elevated_button_custom.dart';
 import 'package:espetosystem/app/data/models/address_model.dart';
 import 'package:espetosystem/app/data/models/client_model.dart';
@@ -68,7 +69,6 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
 
     final number = int.tryParse(_numberController.text.trim()) ?? 0;
     // final isEdit = widget.client != null;
-    // final clientId = widget.client?.id ?? _generateUuidV4();
     final clientId = widget.client?.id ?? Uuid().v4();
 
     Navigator.of(context).pop(
@@ -99,7 +99,7 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide(
-          color: theme.colorScheme.onSecondary.withOpacity(0.35),
+          color: theme.colorScheme.onSecondary.withValues(alpha: 0.35),
         ),
       ),
       focusedBorder: OutlineInputBorder(
@@ -217,17 +217,30 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                       ],
                     ),
                     const SizedBox(height: 18),
-                    _field(
-                      theme: theme,
+                    DefaultFormField(
+                      name: "Nome",
                       controller: _nameController,
-                      label: 'Nome',
-                      onChanged: (_) => setState(() {}),
-                      validator:
+                      theme: theme,
+                      validate:
                           (value) =>
                               (value == null || value.trim().isEmpty)
                                   ? 'Informe o nome'
                                   : null,
+                      labelStyle: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
+                    // _field(
+                    //   theme: theme,
+                    //   controller: _nameController,
+                    //   label: 'Nome',
+                    //   onChanged: (_) => setState(() {}),
+                    //   validator:
+                    //       (value) =>
+                    //           (value == null || value.trim().isEmpty)
+                    //               ? 'Informe o nome'
+                    //               : null,
+                    // ),
                     const SizedBox(height: 12),
                     _field(
                       theme: theme,

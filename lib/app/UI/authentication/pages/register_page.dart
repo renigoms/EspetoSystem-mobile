@@ -26,6 +26,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
   final _confirmPasswordRegisterController = TextEditingController();
 
+  final _formKey = GlobalKey<FormState>();
+
   @override
   void dispose() {
     super.dispose();
@@ -35,106 +37,124 @@ class _RegisterPageState extends State<RegisterPage> {
     _passwordRegisterController.dispose();
   }
 
+  String? _validate(String message, String? value) =>
+      value == null || value.trim().isEmpty ? message : null;
+
   @override
   Widget build(BuildContext context) {
     final authViewModelRead = context.read<AuthViewModel>();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 43),
-      child: Column(
-        spacing: 25,
-        children: [
-          DefaultFormField(
-            name: MessageScreen.nameLabel.value,
-            controller: _nameRegisterController,
-            theme: widget.theme,
-          ),
-          EmailFormField(
-            theme: widget.theme,
-            controller: _emailRegisterController,
-          ),
-          Column(
-            spacing: 8,
-            children: [
-              PasswordFormField(
-                name: MessageScreen.passwordLabel.value,
-                controller: _passwordRegisterController,
-                theme: widget.theme,
-                onChanged: (value) {
-                  authViewModelRead.setHasMinLength(value);
-                  authViewModelRead.setHasNumberCase(value);
-                  authViewModelRead.setHasSpecialCase(value);
-                  authViewModelRead.setHasUpperCase(value);
-                },
-              ),
-              _passwordRegisterController.text.isEmpty
-                  ? Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          MessageScreen.messagePassRequired.value,
-                          softWrap: true,
-                          style: widget.theme.textTheme.labelSmall?.copyWith(
-                            color: widget.theme.colorScheme.onTertiary,
-                          ),
-                        ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          spacing: 25,
+          children: [
+            DefaultFormField(
+              name: MessageScreen.nameLabel.value,
+              controller: _nameRegisterController,
+              theme: widget.theme,
+              validate: (value) => _validate("Insira o Nome", value),
+            ),
+            EmailFormField(
+              theme: widget.theme,
+              controller: _emailRegisterController,
+              validate: (value) => _validate("Insira o e-mail", value),
+            ),
+            Column(
+              spacing: 8,
+              children: [
+                PasswordFormField(
+                  name: MessageScreen.passwordLabel.value,
+                  controller: _passwordRegisterController,
+                  theme: widget.theme,
+                  validate:
+                      (value) => _validate(
+                        "Insira a Senha. "
+                        "${MessageScreen.messagePassRequired.value}",
+                        value,
                       ),
-                    ],
-                  )
-                  : SecurityPasswordValidate(theme: widget.theme),
-            ],
-          ),
-          PasswordFormField(
-            name: MessageScreen.confirmPasswordLabel.value,
-            controller: _confirmPasswordRegisterController,
-            theme: widget.theme,
-          ),
 
-          ElevatedButtomCustom(
-            theme: widget.theme,
-            title: MessageScreen.buttonRegisterName.value,
-            onPressed: () async {
-              final value = _passwordRegisterController.text;
-              if (authViewModelRead.passwordFailVerify) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Essa senha está fraca !")),
+                  onChanged: (value) {
+                    authViewModelRead.setHasMinLength(value);
+                    authViewModelRead.setHasNumberCase(value);
+                    authViewModelRead.setHasSpecialCase(value);
+                    authViewModelRead.setHasUpperCase(value);
+                  },
+                ),
+                _passwordRegisterController.text.isEmpty
+                    ? Row()
+                    // Row(
+                    //   children: [
+                    //     Expanded(
+                    //       child: Text(
+                    //         MessageScreen.messagePassRequired.value,
+                    //         softWrap: true,
+                    //         style: widget.theme.textTheme.labelSmall?.copyWith(
+                    //           color: widget.theme.colorScheme.onTertiary,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ],
+                    // )
+                    : SecurityPasswordValidate(theme: widget.theme),
+              ],
+            ),
+            PasswordFormField(
+              name: MessageScreen.confirmPasswordLabel.value,
+              controller: _confirmPasswordRegisterController,
+              validate: (value) => _validate("Insira a senha novamente", value),
+              theme: widget.theme,
+            ),
+
+            ElevatedButtomCustom(
+              theme: widget.theme,
+              title: MessageScreen.buttonRegisterName.value,
+              onPressed: () async {
+                if (!_formKey.currentState!.validate()) return;
+                final value = _passwordRegisterController.text;
+                if (authViewModelRead.passwordFailVerify) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Essa senha está fraca !")),
+                  );
+                  return;
+                }
+                if (value != _confirmPasswordRegisterController.text) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("As senhas não combinam")),
+                  );
+                  return;
+                }
+
+                final result = await authViewModelRead.registerWithEmail(
+                  _emailRegisterController.text,
+                  _passwordRegisterController.text,
+                  _nameRegisterController.text,
                 );
-                return;
-              }
-              if (value != _confirmPasswordRegisterController.text) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("As senhas não combinam")),
-                );
-                return;
-              }
 
-              final result = await authViewModelRead.registerWithEmail(
-                _emailRegisterController.text,
-                _passwordRegisterController.text,
-                _nameRegisterController.text,
-              );
+                if (!mounted) return;
 
-              if (!mounted) return;
-
-              if (result == "true") {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      "Cadastro realizado com sucesso! Verifique seu e-mail.",
+                if (result == "true") {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "Cadastro realizado com sucesso! Verifique seu e-mail.",
+                      ),
                     ),
-                  ),
-                );
-                authViewModelRead.setIsLogin(
-                  true,
-                ); // Volta para a tela de login
-              } else {
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(SnackBar(content: Text(result)));
-              }
-            },
-          ),
-          SizedBox(height: 10),
-        ],
+                  );
+                  authViewModelRead.setIsLogin(
+                    true,
+                  ); // Volta para a tela de login
+                } else {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(result)));
+                }
+              },
+            ),
+            SizedBox(height: 10),
+          ],
+        ),
       ),
     );
   }

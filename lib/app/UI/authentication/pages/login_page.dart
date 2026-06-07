@@ -25,6 +25,8 @@ class _LoginPageState extends State<LoginPage> {
 
   final _passwordController = TextEditingController();
 
+  final _formKey = GlobalKey<FormState>();
+
   String? testeID;
 
   @override
@@ -45,91 +47,109 @@ class _LoginPageState extends State<LoginPage> {
     final showPasswordField = auth.showPasswordField;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 43),
-      child: Column(
-        spacing: 18,
-        children: [
-          EmailFormField(theme: widget.theme, controller: _emailController),
-          if (showPasswordField) ...[
-            Column(
-              children: [
-                PasswordFormField(
-                  controller: _passwordController,
-                  theme: widget.theme,
-                  name: MessageScreen.passwordLabel.value,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        context.read<AuthViewModel>().setPassRecoverySucc();
-                        context.push(RoutesPathEnum.forgotPassword.value);
-                      },
-                      child: Text(
-                        style: widget.theme.textTheme.labelSmall?.copyWith(
-                          color: widget.theme.colorScheme.onSurface,
-                        ),
-                        MessageScreen.forgotPassword.value,
-                        textAlign: TextAlign.start,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+      child: Form(
+        key: _formKey,
+        child: Column(
+          spacing: 18,
+          children: [
+            EmailFormField(
+              theme: widget.theme,
+              controller: _emailController,
+              validate:
+                  (value) =>
+                      value == null || value.trim().isEmpty
+                          ? "Insira o E-mail"
+                          : null,
             ),
+            if (showPasswordField) ...[
+              Column(
+                children: [
+                  PasswordFormField(
+                    controller: _passwordController,
+                    theme: widget.theme,
+                    name: MessageScreen.passwordLabel.value,
+                    validate:
+                        (value) =>
+                            value == null || value.trim().isEmpty
+                                ? "Insira a Senha"
+                                : null,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          context.read<AuthViewModel>().setPassRecoverySucc();
+                          context.push(RoutesPathEnum.forgotPassword.value);
+                        },
+                        child: Text(
+                          style: widget.theme.textTheme.labelSmall?.copyWith(
+                            color: widget.theme.colorScheme.onSurface,
+                          ),
+                          MessageScreen.forgotPassword.value,
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+            ElevatedButtomCustom(
+              theme: widget.theme,
+              title:
+                  showPasswordField
+                      ? MessageScreen.enter.value
+                      : MessageScreen.continueLogin.value,
+              onPressed: () async {
+                if (!_formKey.currentState!.validate()) return;
+                final authRead = context.read<AuthViewModel>();
+                authRead.setShowPasswordField();
+                // final action = authRead.handleLoginButtonPressed(
+                //   _emailController.text,
+                //   _passwordController.text,
+                // );
+
+                final email = _emailController.text,
+                    password = _passwordController.text;
+
+                if (showPasswordField) {
+                  // if (action is String) {
+                  //   snackMessage(action, context);
+                  //   return;
+                  // }
+
+                  final loginResult = await authRead.loginWithEmail(
+                    email,
+                    password,
+                  );
+                  if (loginResult == "true") {
+                    context.go('/home');
+                    return;
+                  }
+                  snackMessage(loginResult, context);
+                }
+              },
+            ),
+
+            LabelOr(theme: widget.theme),
+            EnterWithGoogle(
+              theme: widget.theme,
+              onPressed: () async {
+                String? idUSer =
+                    await context
+                        .read<AuthViewModel>()
+                        .continueWithGoogleAction();
+
+                if (!mounted) return;
+
+                snackMessage(idUSer, context);
+                context.go('/home');
+              },
+            ),
+            SizedBox(height: 10),
           ],
-          ElevatedButtomCustom(
-            theme: widget.theme,
-            title:
-                showPasswordField
-                    ? MessageScreen.enter.value
-                    : MessageScreen.continueLogin.value,
-            onPressed: () async {
-              final authRead = context.read<AuthViewModel>();
-              final action = authRead.handleLoginButtonPressed(
-                _emailController.text,
-                _passwordController.text,
-              );
-
-              final email = _emailController.text,
-                  password = _passwordController.text;
-
-              if (showPasswordField) {
-                if (action is String) {
-                  snackMessage(action, context);
-                  return;
-                }
-
-                final loginResult = await authRead.loginWithEmail(
-                  email,
-                  password,
-                );
-                if (loginResult == "true") {
-                  context.go('/home');
-                  return;
-                }
-                snackMessage(loginResult, context);
-              }
-            },
-          ),
-
-          LabelOr(theme: widget.theme),
-          EnterWithGoogle(
-            theme: widget.theme,
-            onPressed: () async {
-              String? idUSer =
-                  await context
-                      .read<AuthViewModel>()
-                      .continueWithGoogleAction();
-
-              if (!mounted) return;
-
-              snackMessage(idUSer, context);
-              context.go('/home');
-            },
-          ),
-          SizedBox(height: 10),
-        ],
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:espetosystem/app/UI/home/pages/client_search_page.dart';
 import 'package:espetosystem/app/UI/home/view/main_screen.dart';
 import 'package:espetosystem/app/UI/home/view/personal_info_screen.dart';
 import 'package:espetosystem/app/UI/home/view/settings_screan.dart';
@@ -12,5 +13,15 @@ final homeRoutes = [
   GoRoute(
     path: '/home/settings',
     builder: (context, state) => const SettingsScrean(),
+  ),
+  GoRoute(
+    path: '/home/search',
+    builder: (context, state) {
+      final Map<String, dynamic> extra = state.extra as Map<String, dynamic>;
+      return ClientSearchPage(
+        clients: extra['clients'],
+        initialQuery: extra['initialQuery'],
+      );
+    },
   ),
 ];

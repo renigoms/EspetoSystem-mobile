@@ -1,9 +1,14 @@
 import 'package:espetosystem/app/data/models/client_model.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ClientSearchPage extends StatefulWidget {
-  const ClientSearchPage({super.key, required this.clients, required this.initialQuery});
+  const ClientSearchPage({
+    super.key,
+    required this.clients,
+    required this.initialQuery,
+  });
 
   final List<ClientModel> clients;
   final String initialQuery;
@@ -77,7 +82,9 @@ class _ClientSearchPageState extends State<ClientSearchPage> {
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide(
-                      color: theme.colorScheme.onSecondary.withOpacity(0.28),
+                      color: theme.colorScheme.onSecondary.withValues(
+                        alpha: 0.28,
+                      ),
                     ),
                   ),
                 ),
@@ -120,9 +127,7 @@ class _ClientSearchPageState extends State<ClientSearchPage> {
                               subtitle: Text(client.description),
                               trailing: Text(client.phoneNumber),
                               onTap: () {
-                                Navigator.of(
-                                  context,
-                                ).pop(_controller.text.trim());
+                                context.push('/home/client', extra: client);
                               },
                             );
                           },

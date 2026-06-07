@@ -1,14 +1,13 @@
 import 'package:espetosystem/app/UI/home/components/masks_fields.dart';
-import 'package:espetosystem/app/UI/home/components/modal_custom.dart';
 import 'package:espetosystem/app/UI/home/components/validations.dart';
 import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
+import 'package:espetosystem/app/UI/home/widgets/photo_button.dart';
 import 'package:espetosystem/app/core/widgets/default_form_field.dart';
 import 'package:espetosystem/app/core/widgets/elevated_button_custom.dart';
 import 'package:espetosystem/app/data/models/address_model.dart';
 import 'package:espetosystem/app/data/models/client_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -91,74 +90,8 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
     );
   }
 
-  InputDecoration _inputDecoration(ThemeData theme) {
-    return InputDecoration(
-      filled: true,
-      fillColor: theme.colorScheme.surface,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(
-          color: theme.colorScheme.onSecondary.withValues(alpha: 0.35),
-        ),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: theme.colorScheme.tertiary, width: 1.2),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-    );
-  }
-
-  Widget _field({
-    required ThemeData theme,
-    required TextEditingController controller,
-    required String label,
-    String? Function(String?)? validator,
-    ValueChanged<String>? onChanged,
-    TextInputType keyboardType = TextInputType.text,
-    List<TextInputFormatter>? inputFormatters,
-    int? maxLength,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: controller,
-          onChanged: onChanged,
-          keyboardType: keyboardType,
-          validator: validator,
-          inputFormatters: inputFormatters,
-          maxLength: maxLength,
-          decoration: _inputDecoration(theme).copyWith(counterText: ""),
-        ),
-      ],
-    );
-  }
-
-  Widget _photoButton(ThemeData theme) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(6),
-      onTap: () => openPhotoOptions(context),
-      // onTap: _openPhotoOptions,
-      child: SizedBox(
-        width: 31,
-        height: 31,
-        child: SvgPicture.asset(
-          'assets/icons/camera.svg',
-          width: 31,
-          height: 31,
-        ),
-      ),
-    );
-  }
+  String? _validate(String message, String? value) =>
+      value == null || value.trim().isEmpty ? message : null;
 
   @override
   Widget build(BuildContext context) {
@@ -185,9 +118,11 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   mainAxisSize: MainAxisSize.min,
+                  spacing: 12,
                   children: [
                     const SizedBox(height: 20),
                     Row(
+                      spacing: 12,
                       children: [
                         Expanded(
                           child: Text(
@@ -199,9 +134,7 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        _photoButton(theme),
-                        const SizedBox(width: 12),
+                        PhotoButton(),
                         SizedBox(
                           height: 48,
                           width: 140,
@@ -216,7 +149,6 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 18),
                     DefaultFormField(
                       name: "Nome",
                       controller: _nameController,
@@ -230,127 +162,120 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    // _field(
-                    //   theme: theme,
-                    //   controller: _nameController,
-                    //   label: 'Nome',
-                    //   onChanged: (_) => setState(() {}),
-                    //   validator:
-                    //       (value) =>
-                    //           (value == null || value.trim().isEmpty)
-                    //               ? 'Informe o nome'
-                    //               : null,
-                    // ),
-                    const SizedBox(height: 12),
-                    _field(
-                      theme: theme,
+                    DefaultFormField(
+                      name: "Descrição",
                       controller: _descriptionController,
-                      label: 'Descricao',
-                      validator:
-                          (value) =>
-                              (value == null || value.trim().isEmpty)
-                                  ? 'Informe a descricao'
-                                  : null,
-                    ),
-                    const SizedBox(height: 12),
-                    _field(
                       theme: theme,
-                      controller: _cpfController,
-                      label: 'CPF',
-                      keyboardType: TextInputType.number,
-                      maxLength: 14, // 000.000.000-00
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        CpfInputFormatter(),
-                      ],
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Informe o CPF';
-                        }
-                        if (!validateCPF(value)) {
-                          return 'CPF inválido';
-                        }
-                        return null;
-                      },
+                      validate:
+                          (value) => _validate('Informe a descricao', value),
+                      labelStyle: theme.textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                    const SizedBox(height: 12),
-                    _field(
-                      theme: theme,
-                      controller: _phoneController,
-                      label: 'Telefone',
-                      keyboardType: TextInputType.phone,
-                      maxLength: 15, // (00) 00000-0000
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        PhoneInputFormatter(),
+
+                    Column(
+                      spacing: 5,
+                      children: [
+                        DefaultFormField(
+                          name: "CPF",
+                          controller: _cpfController,
+                          theme: theme,
+                          keyboardType: TextInputType.number,
+                          labelStyle: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLength: 14,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            CpfInputFormatter(),
+                          ],
+                          validate: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Informe o CPF';
+                            }
+                            if (!validateCPF(value)) {
+                              return 'CPF inválido';
+                            }
+                            return null;
+                          },
+                        ),
+                        DefaultFormField(
+                          name: "Telefone",
+                          controller: _phoneController,
+                          theme: theme,
+                          keyboardType: TextInputType.number,
+                          labelStyle: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLength: 15,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            PhoneInputFormatter(),
+                          ],
+                          validate:
+                              (value) => _validate("Informe o Telefone", value),
+                        ),
                       ],
-                      validator:
-                          (value) =>
-                              (value == null || value.trim().isEmpty)
-                                  ? 'Informe o telefone'
-                                  : null,
                     ),
-                    const SizedBox(height: 12),
+
                     Text(
-                      'Endereco',
+                      'Endereço',
                       style: theme.textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 6),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: theme.colorScheme.onSecondary.withOpacity(
-                            0.28,
+                          color: theme.colorScheme.onSecondary.withValues(
+                            alpha: 0.28,
                           ),
                         ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Column(
                         children: [
-                          _field(
-                            theme: theme,
+                          DefaultFormField(
+                            name: "Rua",
                             controller: _streetController,
-                            label: 'Rua',
-                            validator:
-                                (value) =>
-                                    (value == null || value.trim().isEmpty)
-                                        ? 'Informe a rua'
-                                        : null,
+                            labelStyle: theme.textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                            theme: theme,
+                            validate:
+                                (value) => _validate("Informe a rua", value),
                           ),
                           const SizedBox(height: 12),
                           Row(
                             children: [
                               Expanded(
                                 flex: 3,
-                                child: _field(
-                                  theme: theme,
+                                child: DefaultFormField(
+                                  name: "Bairro",
                                   controller: _neighborhoodController,
-                                  label: 'Bairro',
-                                  validator:
+                                  labelStyle: theme.textTheme.labelSmall
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                  theme: theme,
+                                  validate:
                                       (value) =>
-                                          (value == null ||
-                                                  value.trim().isEmpty)
-                                              ? 'Informe o bairro'
-                                              : null,
+                                          _validate("Informe o bairro", value),
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 flex: 1,
-                                child: _field(
-                                  theme: theme,
+                                child: DefaultFormField(
+                                  name: "N°",
                                   controller: _numberController,
-                                  label: 'N°',
-                                  keyboardType: TextInputType.number,
-                                  validator:
-                                      (value) =>
-                                          (value == null ||
-                                                  value.trim().isEmpty)
-                                              ? 'Informe o numero'
-                                              : null,
+                                  labelStyle: theme.textTheme.labelSmall
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                  theme: theme,
+                                  validate:
+                                      (value) => _validate(
+                                        "Informe o número residencial",
+                                        value,
+                                      ),
                                 ),
                               ),
                             ],

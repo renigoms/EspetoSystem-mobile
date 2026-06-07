@@ -10,6 +10,7 @@ class DefaultFormField extends StatelessWidget {
   final String name;
   final String? hintText;
   final int? maxLines;
+  final int? maxLength;
   final TextInputType? keyboardType;
   final List<dynamic>? inputFormatters;
   TextStyle? labelStyle;
@@ -23,6 +24,7 @@ class DefaultFormField extends StatelessWidget {
     required this.theme,
     this.hintText,
     this.maxLines,
+    this.maxLength,
     this.keyboardType,
     this.inputFormatters,
     this.validate,
@@ -42,6 +44,7 @@ class DefaultFormField extends StatelessWidget {
           keyboardType: keyboardType,
           inputFormatters: inputFormatters?.cast<TextInputFormatter>(),
           validator: validate,
+          maxLength: maxLength,
           autovalidateMode:
               autoValidateMode ?? AutovalidateMode.onUserInteraction,
           decoration: formFieldDecoration(theme, null).copyWith(

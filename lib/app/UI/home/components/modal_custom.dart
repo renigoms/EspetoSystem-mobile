@@ -1,4 +1,6 @@
 import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
+import 'package:espetosystem/app/UI/home/widgets/client_form_sheet.dart';
+import 'package:espetosystem/app/data/models/client_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -70,5 +72,21 @@ Future<void> openPhotoOptions(BuildContext context) async =>
             ],
           ),
         );
+      },
+    );
+
+Future<ClientModel?> create(BuildContext context, ThemeData theme) async =>
+    await showModalBottomSheet<ClientModel>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      useRootNavigator: true,
+      backgroundColor: theme.colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      builder: (BuildContext context) {
+        return const ClientFormSheet();
       },
     );

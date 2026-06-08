@@ -1,15 +1,16 @@
-import 'package:espetosystem/app/data/models/client_model.dart';
+import 'dart:async';
+
 import 'package:espetosystem/app/data/models/account_model.dart';
-import 'package:espetosystem/app/data/models/item_model.dart';
+import 'package:espetosystem/app/data/models/client_model.dart';
 import 'package:espetosystem/app/data/models/item_account_model.dart';
+import 'package:espetosystem/app/data/models/item_model.dart';
 import 'package:espetosystem/app/data/models/payment_model.dart';
 import 'package:espetosystem/app/data/models/purchased_item_model.dart';
 import 'package:espetosystem/app/data/repositories/account_repository.dart';
 import 'package:espetosystem/app/data/repositories/client_repository.dart';
-import 'package:espetosystem/app/data/repositories/item_repository.dart';
 import 'package:espetosystem/app/data/repositories/item_account_repository.dart';
+import 'package:espetosystem/app/data/repositories/item_repository.dart';
 import 'package:espetosystem/app/data/repositories/payment_repository.dart';
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -239,8 +240,6 @@ class HomeViewModel extends ChangeNotifier {
 
       debugPrint('Error loading clients: $e');
     } finally {
-      if (generation != _loadGeneration) return;
-
       _isLoading = false;
       notifyListeners();
     }

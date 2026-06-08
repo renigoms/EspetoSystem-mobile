@@ -1,5 +1,4 @@
 import 'package:espetosystem/app/UI/home/components/modal_custom.dart';
-import 'package:espetosystem/app/UI/home/pages/client_search_page.dart';
 import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
 import 'package:espetosystem/app/UI/home/widgets/app_bar.dart';
 import 'package:espetosystem/app/UI/home/widgets/client_card.dart';
@@ -188,13 +187,6 @@ class MainScreen extends StatelessWidget {
               ),
             ),
           ),
-          floatingActionButton:
-              viewModel.isLoading && clients.isNotEmpty
-                  ? const FloatingActionButton(
-                    onPressed: null,
-                    child: CircularProgressIndicator(color: Colors.white),
-                  )
-                  : null,
         );
       },
     );

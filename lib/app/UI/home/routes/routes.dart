@@ -1,4 +1,4 @@
-import 'package:espetosystem/app/UI/home/pages/client_search_page.dart';
+import 'package:espetosystem/app/UI/home/view/client_search_screen.dart';
 import 'package:espetosystem/app/UI/home/view/main_screen.dart';
 import 'package:espetosystem/app/UI/home/view/personal_info_screen.dart';
 import 'package:espetosystem/app/UI/home/view/settings_screan.dart';

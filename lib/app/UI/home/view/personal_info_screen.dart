@@ -1,3 +1,5 @@
+import 'package:espetosystem/app/UI/home/extensions/string_extension.dart';
+import 'package:espetosystem/app/UI/home/extensions/user_extension.dart';
 import 'package:espetosystem/app/UI/home/widgets/user_profile_avatar.dart';
 import 'package:espetosystem/app/core/widgets/default_form_field.dart';
 import 'package:espetosystem/app/core/widgets/elevated_button_custom.dart';
@@ -7,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PersonalInfoScreen extends StatefulWidget {
   const PersonalInfoScreen({super.key});
@@ -17,55 +18,6 @@ class PersonalInfoScreen extends StatefulWidget {
 }
 
 class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
-  Color _withAlpha(Color color, double opacity) {
-    return color.withAlpha((opacity * 255).round().clamp(0, 255));
-  }
-
-  String? _avatarUrl(User? user) {
-    final metadata = user?.userMetadata;
-    final rawUrl =
-        metadata?['avatar_url'] ??
-        metadata?['picture'] ??
-        metadata?['photo_url'] ??
-        metadata?['avatar'] ??
-        metadata?['image_url'];
-
-    if (rawUrl is String && rawUrl.isNotEmpty) {
-      return rawUrl;
-    }
-
-    return null;
-  }
-
-  String _displayName(User? user) {
-    final metadata = user?.userMetadata;
-    final value =
-        (metadata?['full_name'] ??
-                metadata?['name'] ??
-                user?.email ??
-                'Usuário')
-            .toString()
-            .trim();
-
-    return value.isEmpty ? 'Usuário' : value;
-  }
-
-  String _fallbackLabel(String displayName) {
-    final parts =
-        displayName
-            .split(RegExp(r'\s+'))
-            .where((part) => part.isNotEmpty)
-            .toList();
-    if (parts.isEmpty) {
-      return 'U';
-    }
-
-    final first = parts.first;
-    final last = parts.length > 1 ? parts.last : '';
-    final initials = '${first[0]}${last.isNotEmpty ? last[0] : ''}';
-    return initials.toUpperCase();
-  }
-
   Future<void> _signOut(BuildContext context) async {
     await context.read<AuthRepository>().signOut();
     if (!context.mounted) {
@@ -82,26 +34,29 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   ) async {
     await showDialog<void>(
       context: context,
-      builder: (ctx) => EditNameDialog(
-        currentName: currentName,
-        onSave: (newName) async {
-          try {
-            await authRepository.updateProfile(name: newName);
-            if (mounted) {
-              setState(() {}); // Força rebuild para pegar novos metadados
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Nome atualizado com sucesso')),
-              );
-            }
-          } catch (e) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Erro ao atualizar nome: $e')),
-              );
-            }
-          }
-        },
-      ),
+      builder:
+          (ctx) => EditNameDialog(
+            currentName: currentName,
+            onSave: (newName) async {
+              try {
+                await authRepository.updateProfile(name: newName);
+                if (mounted) {
+                  setState(() {}); // Força rebuild para pegar novos metadados
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Nome atualizado com sucesso'),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erro ao atualizar nome: $e')),
+                  );
+                }
+              }
+            },
+          ),
     );
   }
 
@@ -130,15 +85,17 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Funcionalidade de upload de foto em desenvolvimento.'),
+            content: Text(
+              'Funcionalidade de upload de foto em desenvolvimento.',
+            ),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao selecionar foto: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao selecionar foto: $e')));
       }
     }
   }
@@ -170,7 +127,6 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-                // padding: EdgeInsets.symmetric(horizontal: 5, vertical: 500),
                 child: Column(
                   spacing: 20,
                   mainAxisSize: MainAxisSize.min,
@@ -279,9 +235,9 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     final theme = Theme.of(context);
     final authRepository = context.read<AuthRepository>();
     final currentUser = authRepository.supabaseClient.auth.currentUser;
-    final displayName = _displayName(currentUser);
+    final displayName = currentUser?.displayName;
     final email = currentUser?.email ?? 'Sem e-mail cadastrado';
-    final fallbackLabel = _fallbackLabel(displayName);
+    final fallbackLabel = displayName!.fallbackLabel;
 
     return Scaffold(
       appBar: AppBar(
@@ -305,7 +261,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                     onTap: () => _updateProfilePhoto(context, authRepository),
                     child: UserProfileAvatar(
                       size: 88,
-                      avatarUrl: _avatarUrl(currentUser),
+                      avatarUrl: currentUser?.avatarUrl,
                       fallbackLabel: fallbackLabel,
                     ),
                   ),
@@ -337,7 +293,9 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                         _StyledTile(
                           theme: theme,
                           icon: Icons.info_outline,
-                          iconBg: _withAlpha(theme.colorScheme.tertiary, 0.12),
+                          iconBg: theme.colorScheme.tertiary.withValues(
+                            alpha: 0.12,
+                          ),
                           iconColor: theme.colorScheme.tertiary,
                           title: 'Alterar dados pessoais',
                           onTap:
@@ -351,7 +309,9 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                         _StyledTile(
                           theme: theme,
                           icon: Icons.lock_outline,
-                          iconBg: _withAlpha(theme.colorScheme.tertiary, 0.12),
+                          iconBg: theme.colorScheme.tertiary.withValues(
+                            alpha: 0.12,
+                          ),
                           iconColor: theme.colorScheme.tertiary,
                           title: 'Alterar senha',
                           onTap:
@@ -368,7 +328,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                     _StyledTile(
                       theme: theme,
                       icon: Icons.logout,
-                      iconBg: _withAlpha(theme.colorScheme.error, 0.08),
+                      iconBg: theme.colorScheme.error.withValues(alpha: 0.08),
                       iconColor: theme.colorScheme.error,
                       title: 'Sair da sessão',
                       trailing: Icon(
@@ -423,7 +383,10 @@ class _EditNameDialogState extends State<EditNameDialog> {
 
     return Dialog(
       backgroundColor: theme.colorScheme.secondary,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: 24.0,
+        vertical: 24.0,
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 400),

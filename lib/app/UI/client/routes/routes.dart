@@ -1,5 +1,7 @@
+import 'package:espetosystem/app/UI/client/pages/client_details_page.dart';
+import 'package:espetosystem/app/UI/client/pages/client_payment_page.dart';
 import 'package:espetosystem/app/UI/client/view/adicionar_itens_screen.dart';
-import 'package:espetosystem/app/UI/client/view/client_details_page.dart';
+import 'package:espetosystem/app/UI/client/view/client_details_screen.dart';
 import 'package:espetosystem/app/data/models/client_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

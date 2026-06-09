@@ -1,4 +1,6 @@
 import 'dart:ui';
+
+import 'package:espetosystem/app/UI/client/components/currency_input_formatter.dart';
 import 'package:espetosystem/app/core/widgets/default_form_field.dart';
 import 'package:espetosystem/app/core/widgets/elevated_button_custom.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +18,9 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
   final List<Map<String, dynamic>> itensAdicionados = [];
 
   final TextEditingController _quantidadeController = TextEditingController();
-  final TextEditingController _unidadeController = TextEditingController(text: 'UND');
+  final TextEditingController _unidadeController = TextEditingController(
+    text: 'UND',
+  );
   final TextEditingController _descricaoController = TextEditingController();
   final TextEditingController _valorController = TextEditingController();
 
@@ -63,8 +67,10 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
     }
   }
 
-  double get _totalGeral =>
-      itensAdicionados.fold(0, (sum, item) => sum + (item['totalValue'] as double));
+  double get _totalGeral => itensAdicionados.fold(
+    0,
+    (sum, item) => sum + (item['totalValue'] as double),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +123,7 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            
+
             DefaultFormField(
               name: 'Descrição',
               controller: _descricaoController,
@@ -126,7 +132,7 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
               maxLines: 4,
             ),
             const SizedBox(height: 16),
-            
+
             DefaultFormField(
               name: 'Valor Unitário',
               controller: _valorController,
@@ -139,7 +145,7 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
               ],
             ),
             const SizedBox(height: 24),
-            
+
             // Botão Adicionar Item (Texto Azul com Borda Tracejada)
             GestureDetector(
               onTap: _adicionarItem,
@@ -152,12 +158,16 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.add, color: theme.colorScheme.tertiary, size: 20),
+                      Icon(
+                        Icons.add,
+                        color: theme.colorScheme.tertiary,
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Adicionar Item',
                         style: TextStyle(
-                          color: theme.colorScheme.tertiary, 
+                          color: theme.colorScheme.tertiary,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -168,7 +178,7 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Botão Concluir (Fundo Azul)
             ElevatedButtomCustom(
               theme: theme,
@@ -177,7 +187,7 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
                 Navigator.of(context).pop(itensAdicionados);
               },
             ),
-            
+
             const SizedBox(height: 32),
 
             // --- SEÇÃO DA LISTA ---
@@ -204,8 +214,9 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
 
               // Lista de Cards
               ListView.builder(
-                shrinkWrap: true, // Necessário por estar dentro do SingleChildScrollView
-                physics: const NeverScrollableScrollPhysics(), 
+                shrinkWrap:
+                    true, // Necessário por estar dentro do SingleChildScrollView
+                physics: const NeverScrollableScrollPhysics(),
                 itemCount: itensAdicionados.length,
                 itemBuilder: (context, index) {
                   final item = itensAdicionados[index];
@@ -257,26 +268,38 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
                   color: theme.colorScheme.error,
                   size: 20,
                 ),
-              )
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          
+
           // Dados do Card em Colunas
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 flex: 1,
-                child: _buildCardDataColumn('Qtd.', item["quantidade"].toString(), theme),
+                child: _buildCardDataColumn(
+                  'Qtd.',
+                  item["quantidade"].toString(),
+                  theme,
+                ),
               ),
               Expanded(
                 flex: 1,
-                child: _buildCardDataColumn('Unid.', item["unidade"].toString(), theme),
+                child: _buildCardDataColumn(
+                  'Unid.',
+                  item["unidade"].toString(),
+                  theme,
+                ),
               ),
               Expanded(
                 flex: 2,
-                child: _buildCardDataColumn('Descrição', item["descricao"], theme),
+                child: _buildCardDataColumn(
+                  'Descrição',
+                  item["descricao"],
+                  theme,
+                ),
               ),
               Expanded(
                 flex: 2,
@@ -284,10 +307,14 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
               ),
               Expanded(
                 flex: 2,
-                child: _buildCardDataColumn('Total', item["total"] ?? '', theme),
+                child: _buildCardDataColumn(
+                  'Total',
+                  item["total"] ?? '',
+                  theme,
+                ),
               ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -316,23 +343,6 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
   }
 }
 
-class CurrencyInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    if (newValue.selection.baseOffset == 0) {
-      return newValue;
-    }
-
-    double value = double.parse(newValue.text);
-    final formatter = 'R\$ ${(value / 100).toStringAsFixed(2).replaceAll('.', ',')}';
-
-    return newValue.copyWith(
-        text: formatter,
-        selection: TextSelection.collapsed(offset: formatter.length));
-  }
-}
-
 class DashedRectPainter extends CustomPainter {
   final Color color;
   final double strokeWidth;
@@ -346,16 +356,19 @@ class DashedRectPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    Paint paint = Paint()
-      ..color = color
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke;
+    Paint paint =
+        Paint()
+          ..color = color
+          ..strokeWidth = strokeWidth
+          ..style = PaintingStyle.stroke;
 
     Path path = Path();
-    path.addRRect(RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, size.width, size.height),
-      const Radius.circular(4),
-    ));
+    path.addRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        const Radius.circular(4),
+      ),
+    );
 
     Path dashedPath = Path();
     for (PathMetric pathMetric in path.computeMetrics()) {

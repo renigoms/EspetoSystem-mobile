@@ -1,3 +1,4 @@
+import 'package:espetosystem/app/UI/client/view_model/client_view_model.dart';
 import 'package:espetosystem/app/UI/client/widgets/add_payment_dialog.dart';
 import 'package:espetosystem/app/UI/client/widgets/build_header_cell.dart';
 import 'package:espetosystem/app/UI/client/widgets/client_detail_scope.dart';
@@ -5,7 +6,6 @@ import 'package:espetosystem/app/UI/client/widgets/client_header.dart';
 import 'package:espetosystem/app/UI/client/widgets/debt_summary_card.dart';
 import 'package:espetosystem/app/UI/client/widgets/payment_tile.dart';
 import 'package:espetosystem/app/UI/client/widgets/payments_title.dart';
-import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -25,7 +25,7 @@ class _ClientPaymentsPageState extends State<ClientPaymentsPage> {
       if (mounted) {
         final client = ClientDetailsScope.clientOf(context);
         if (client.id != null) {
-          context.read<HomeViewModel>().loadItemsForClient(
+          context.read<ClientViewModel>().loadItemsForClient(
             client.id!,
           ); // This also loads payments
         }
@@ -36,7 +36,7 @@ class _ClientPaymentsPageState extends State<ClientPaymentsPage> {
   @override
   Widget build(BuildContext context) {
     final client = ClientDetailsScope.clientOf(context);
-    final viewModel = context.watch<HomeViewModel>();
+    final viewModel = context.watch<ClientViewModel>();
     final payments = viewModel.getPaymentsForClient(client.id ?? '');
 
     return ListView(
@@ -54,7 +54,7 @@ class _ClientPaymentsPageState extends State<ClientPaymentsPage> {
             );
 
             if (result != null && context.mounted) {
-              final viewModel = context.read<HomeViewModel>();
+              final viewModel = context.read<ClientViewModel>();
               if (client.id != null) {
                 await viewModel.addPaymentToClientAccount(client.id!, result);
               }

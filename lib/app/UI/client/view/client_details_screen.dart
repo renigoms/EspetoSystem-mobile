@@ -4,7 +4,6 @@ import 'package:espetosystem/app/UI/client/view_model/client_view_model.dart';
 import 'package:espetosystem/app/UI/client/widgets/bottom_bar.dart';
 import 'package:espetosystem/app/UI/client/widgets/client_detail_scope.dart';
 import 'package:espetosystem/app/UI/client/widgets/logo_header.dart';
-import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
 import 'package:espetosystem/app/data/models/client_model.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -81,7 +80,7 @@ class _ClientDetailsShellPageState extends State<ClientDetailsShellPage> {
       final confirm = await confirmDialog(context, theme);
 
       if (confirm == true && context.mounted) {
-        final viewModel = context.read<HomeViewModel>();
+        final viewModel = context.read<ClientViewModel>();
         if (client.id != null) {
           await viewModel.deleteClient(client.id!);
           if (context.mounted) {

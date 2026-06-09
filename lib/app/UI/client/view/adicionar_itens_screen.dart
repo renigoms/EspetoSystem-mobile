@@ -1,6 +1,6 @@
-import 'dart:ui';
-
 import 'package:espetosystem/app/UI/client/components/currency_input_formatter.dart';
+import 'package:espetosystem/app/UI/client/widgets/build_item_card.dart';
+import 'package:espetosystem/app/UI/client/widgets/dashed_buttom.dart';
 import 'package:espetosystem/app/core/widgets/default_form_field.dart';
 import 'package:espetosystem/app/core/widgets/elevated_button_custom.dart';
 import 'package:flutter/material.dart';
@@ -147,36 +147,8 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
             const SizedBox(height: 24),
 
             // Botão Adicionar Item (Texto Azul com Borda Tracejada)
-            GestureDetector(
-              onTap: _adicionarItem,
-              child: CustomPaint(
-                painter: DashedRectPainter(color: theme.colorScheme.tertiary),
-                child: Container(
-                  width: double.infinity,
-                  height: 48,
-                  alignment: Alignment.center,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.add,
-                        color: theme.colorScheme.tertiary,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Adicionar Item',
-                        style: TextStyle(
-                          color: theme.colorScheme.tertiary,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            DashedButtom(action: _adicionarItem, theme: theme),
+
             const SizedBox(height: 16),
 
             // Botão Concluir (Fundo Azul)
@@ -220,7 +192,16 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
                 itemCount: itensAdicionados.length,
                 itemBuilder: (context, index) {
                   final item = itensAdicionados[index];
-                  return _buildItemCard(item, index, theme);
+                  return BuildItemCard(
+                    index: index,
+                    item: item,
+                    theme: theme,
+                    action: () {
+                      setState(() {
+                        itensAdicionados.removeAt(index);
+                      });
+                    },
+                  );
                 },
               ),
             ],
@@ -229,161 +210,4 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
       ),
     );
   }
-
-  // --- WIDGETS AUXILIARES ---
-
-  Widget _buildItemCard(Map<String, dynamic> item, int index, ThemeData theme) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.onPrimary,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(
-          color: theme.colorScheme.onSecondary.withValues(alpha: 0.16),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Cabeçalho do Card (Nome do item e botão de excluir)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'item ${index + 1}',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    itensAdicionados.removeAt(index);
-                  });
-                },
-                child: Icon(
-                  Icons.delete,
-                  color: theme.colorScheme.error,
-                  size: 20,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Dados do Card em Colunas
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                flex: 1,
-                child: _buildCardDataColumn(
-                  'Qtd.',
-                  item["quantidade"].toString(),
-                  theme,
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: _buildCardDataColumn(
-                  'Unid.',
-                  item["unidade"].toString(),
-                  theme,
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: _buildCardDataColumn(
-                  'Descrição',
-                  item["descricao"],
-                  theme,
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: _buildCardDataColumn('V. Unit.', item["valor"], theme),
-              ),
-              Expanded(
-                flex: 2,
-                child: _buildCardDataColumn(
-                  'Total',
-                  item["total"] ?? '',
-                  theme,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCardDataColumn(String label, String value, ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.54),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: theme.textTheme.bodySmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onSurface,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class DashedRectPainter extends CustomPainter {
-  final Color color;
-  final double strokeWidth;
-  final double gap;
-
-  DashedRectPainter({
-    this.color = Colors.blue,
-    this.strokeWidth = 1.0,
-    this.gap = 5.0,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    Paint paint =
-        Paint()
-          ..color = color
-          ..strokeWidth = strokeWidth
-          ..style = PaintingStyle.stroke;
-
-    Path path = Path();
-    path.addRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(0, 0, size.width, size.height),
-        const Radius.circular(4),
-      ),
-    );
-
-    Path dashedPath = Path();
-    for (PathMetric pathMetric in path.computeMetrics()) {
-      double distance = 0.0;
-      while (distance < pathMetric.length) {
-        dashedPath.addPath(
-          pathMetric.extractPath(distance, distance + gap),
-          Offset.zero,
-        );
-        distance += gap * 2;
-      }
-    }
-    canvas.drawPath(dashedPath, paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

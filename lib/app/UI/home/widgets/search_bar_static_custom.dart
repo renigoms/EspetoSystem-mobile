@@ -15,7 +15,7 @@ class SearchBarStaticCustom extends StatelessWidget {
       child: Container(
         height: 40,
         decoration: BoxDecoration(
-          color: theme.colorScheme.onPrimary,
+          color: theme.colorScheme.primary,
           borderRadius: BorderRadius.circular(7),
           border: Border.all(color: theme.colorScheme.onSecondary, width: 0.5),
         ),

@@ -14,7 +14,6 @@ class ItemRepository extends BaseRepository<ItemModel> {
           networkInfo: networkInfo,
           tableName: 'item',
           cacheKey: 'cached_item',
-
         );
 
   @override

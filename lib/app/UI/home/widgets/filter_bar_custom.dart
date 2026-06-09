@@ -35,7 +35,7 @@ class FilterBarCustom extends StatelessWidget {
                 color:
                     selected
                         ? theme.colorScheme.tertiary
-                        : theme.colorScheme.surface,
+                        : theme.colorScheme.primary,
                 border: Border.all(
                   color:
                       selected

@@ -2,6 +2,9 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:espetosystem/app/data/repositories/auth_repository.dart';
 import 'package:espetosystem/app/data/repositories/account_repository.dart';
 import 'package:espetosystem/app/data/repositories/client_repository.dart';
+import 'package:espetosystem/app/data/repositories/item_repository.dart';
+import 'package:espetosystem/app/data/repositories/item_account_repository.dart';
+import 'package:espetosystem/app/data/repositories/payment_repository.dart';
 import 'package:espetosystem/app/data/services/local_cache_service.dart';
 import 'package:espetosystem/app/data/services/network_info.dart';
 import 'package:espetosystem/app/data/services/supabase_service.dart';
@@ -53,6 +56,25 @@ void main() async {
     remoteDataSource: supabaseService,
     localDataSource: localCacheService,
     networkInfo: networkInfo,
+    accountRepository: accountRepository,
+  );
+
+  final itemRepository = ItemRepository(
+    remoteDataSource: supabaseService,
+    localDataSource: localCacheService,
+    networkInfo: networkInfo,
+  );
+
+  final itemAccountRepository = ItemAccountRepository(
+    remoteDataSource: supabaseService,
+    localDataSource: localCacheService,
+    networkInfo: networkInfo,
+  );
+
+  final paymentRepository = PaymentRepository(
+    remoteDataSource: supabaseService,
+    localDataSource: localCacheService,
+    networkInfo: networkInfo,
   );
 
   runApp(
@@ -60,6 +82,9 @@ void main() async {
       authRepository: authRepository,
       accountRepository: accountRepository,
       clientRepository: clientRepository,
+      itemRepository: itemRepository,
+      itemAccountRepository: itemAccountRepository,
+      paymentRepository: paymentRepository,
     ),
   );
 }

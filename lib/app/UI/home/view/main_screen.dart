@@ -111,6 +111,7 @@ class MainScreen extends StatelessWidget {
                                       width: 31,
                                       height: 31,
                                       decoration: BoxDecoration(
+                                        color: theme.colorScheme.primary,
                                         border: Border.all(
                                           color: theme.colorScheme.onSecondary,
                                         ),
@@ -181,8 +182,10 @@ class MainScreen extends StatelessWidget {
                                                 const SizedBox(height: 10),
                                         itemBuilder: (context, index) {
                                           final client = clients[index];
+                                          final status = viewModel.accountStatuses[client.id] ?? 'LIMPA';
                                           return ClientCard(
                                             client: client,
+                                            status: status,
                                             onTap: () {
                                               context.push(
                                                 '/home/client',

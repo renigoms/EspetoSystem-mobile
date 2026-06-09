@@ -1,5 +1,5 @@
 class AuthProfileModel {
-  final String id; // Matches Supabase Auth User ID
+  final String id;
   final String login;
   final String securityAnswer;
   final String role;

@@ -1,27 +1,19 @@
 import 'package:espetosystem/app/data/models/account_model.dart';
-import 'package:espetosystem/app/data/repositories/account_repository.dart';
-import 'package:flutter/foundation.dart';
-import 'package:espetosystem/app/data/models/client_model.dart';
 import 'package:espetosystem/app/data/models/address_model.dart';
-import 'package:espetosystem/app/data/services/base_data_source.dart';
-import 'package:espetosystem/app/data/services/network_info.dart';
+import 'package:espetosystem/app/data/models/client_model.dart';
+import 'package:espetosystem/app/data/repositories/account_repository.dart';
 import 'package:espetosystem/app/data/repositories/base_repository.dart';
+import 'package:flutter/foundation.dart';
 
 class ClientRepository extends BaseRepository<ClientModel> {
   final AccountRepository accountRepository;
 
   ClientRepository({
-    required IBaseRemoteDataSource remoteDataSource,
-    required IBaseLocalDataSource localDataSource,
-    required NetworkInfo networkInfo,
+    required super.remoteDataSource,
+    required super.localDataSource,
+    required super.networkInfo,
     required this.accountRepository,
-  }) : super(
-         remoteDataSource: remoteDataSource,
-         localDataSource: localDataSource,
-         networkInfo: networkInfo,
-         tableName: 'client',
-         cacheKey: 'cached_client',
-       );
+  }) : super(tableName: 'client', cacheKey: 'cached_client');
 
   @override
   ClientModel fromJson(Map<String, dynamic> json) => ClientModel.fromJson(json);
@@ -41,23 +33,32 @@ class ClientRepository extends BaseRepository<ClientModel> {
       try {
         final List<Map<String, dynamic>> addrs = await remoteDataSource
             .fetchWhereIn('address', 'client_id', ids);
-        
+
         // Save address to user-specific cache
         await localDataSource.save(userAddrCacheKey, addrs);
-        
+
         return _mergeClientsAndAddresses(clients, addrs);
       } catch (e) {
         debugPrint('Error fetching address from remote: $e');
         final cachedAddrs = localDataSource.get(userAddrCacheKey) as List?;
-        return _mergeClientsAndAddresses(clients, cachedAddrs?.cast<Map<String, dynamic>>() ?? []);
+        return _mergeClientsAndAddresses(
+          clients,
+          cachedAddrs?.cast<Map<String, dynamic>>() ?? [],
+        );
       }
     } else {
       final cachedAddrs = localDataSource.get(userAddrCacheKey) as List?;
-      return _mergeClientsAndAddresses(clients, cachedAddrs?.cast<Map<String, dynamic>>() ?? []);
+      return _mergeClientsAndAddresses(
+        clients,
+        cachedAddrs?.cast<Map<String, dynamic>>() ?? [],
+      );
     }
   }
 
-  List<ClientModel> _mergeClientsAndAddresses(List<ClientModel> clients, List<Map<String, dynamic>> addrs) {
+  List<ClientModel> _mergeClientsAndAddresses(
+    List<ClientModel> clients,
+    List<Map<String, dynamic>> addrs,
+  ) {
     final Map<String, Map<String, dynamic>> addrByClient = {
       for (final a in addrs) (a['client_id'] ?? '').toString(): a,
     };
@@ -81,11 +82,15 @@ class ClientRepository extends BaseRepository<ClientModel> {
   }
 
   Future<ClientModel?> saveClient(ClientModel client, String userId) async {
-    debugPrint('DEBUG: saveClient called for client ID: ${client.id}. Name: ${client.name}');
-    
+    debugPrint(
+      'DEBUG: saveClient called for client ID: ${client.id}. Name: ${client.name}',
+    );
+
     // 1. Save the client first
     final savedClient = await saveForUser(client, userId);
-    debugPrint('DEBUG: Client saved. Result ID: ${savedClient?.id}, Name: ${savedClient?.name}');
+    debugPrint(
+      'DEBUG: Client saved. Result ID: ${savedClient?.id}, Name: ${savedClient?.name}',
+    );
 
     if (savedClient != null) {
       // Create account for the new client if it doesn't have an ID (new client)
@@ -93,19 +98,20 @@ class ClientRepository extends BaseRepository<ClientModel> {
         debugPrint('DEBUG: Client is new. Creating Account.');
         try {
           await accountRepository.saveForUser(
-            AccountModel(
-              clientId: savedClient.id!,
-              status: 'LIMPA',
-            ),
+            AccountModel(clientId: savedClient.id!, status: 'LIMPA'),
             userId,
           );
         } catch (e) {
-          debugPrint('DEBUG: Error creating account for client ${savedClient.id}: $e');
+          debugPrint(
+            'DEBUG: Error creating account for client ${savedClient.id}: $e',
+          );
         }
       }
 
       if (client.address != null) {
-        debugPrint('DEBUG: Processing Address for client. Address ID: ${client.address!.id}');
+        debugPrint(
+          'DEBUG: Processing Address for client. Address ID: ${client.address!.id}',
+        );
         // 2. Prepare address data with the new client ID
         final addressData = client.address!.toJson();
         addressData['client_id'] = savedClient.id;
@@ -114,7 +120,10 @@ class ClientRepository extends BaseRepository<ClientModel> {
           if (await networkInfo.isConnected) {
             debugPrint('DEBUG: Online. Upserting address to Supabase.');
             // 3. Save to remote
-            final savedAddrMap = await remoteDataSource.upsert('address', addressData);
+            final savedAddrMap = await remoteDataSource.upsert(
+              'address',
+              addressData,
+            );
             debugPrint('DEBUG: Address saved to Supabase successfully.');
 
             // 4. Return client with the saved address (including its new ID)
@@ -129,8 +138,10 @@ class ClientRepository extends BaseRepository<ClientModel> {
               address: AddressModel.fromJson(savedAddrMap),
             );
           } else {
-             debugPrint('DEBUG: Offline. Returning client with provided address.');
-             return ClientModel(
+            debugPrint(
+              'DEBUG: Offline. Returning client with provided address.',
+            );
+            return ClientModel(
               id: savedClient.id,
               userId: savedClient.userId,
               name: savedClient.name,
@@ -138,11 +149,15 @@ class ClientRepository extends BaseRepository<ClientModel> {
               phoneNumber: savedClient.phoneNumber,
               cpf: savedClient.cpf,
               photoPath: savedClient.photoPath,
-              address: AddressModel.fromJson(addressData), // Returns with client_id updated
+              address: AddressModel.fromJson(
+                addressData,
+              ), // Returns with client_id updated
             );
           }
         } catch (e) {
-          debugPrint('DEBUG: Error saving address for client ${savedClient.id}: $e');
+          debugPrint(
+            'DEBUG: Error saving address for client ${savedClient.id}: $e',
+          );
           // If address fails remote save, still return it so the UI updates
           return ClientModel(
             id: savedClient.id,
@@ -152,7 +167,7 @@ class ClientRepository extends BaseRepository<ClientModel> {
             phoneNumber: savedClient.phoneNumber,
             cpf: savedClient.cpf,
             photoPath: savedClient.photoPath,
-            address: AddressModel.fromJson(addressData), 
+            address: AddressModel.fromJson(addressData),
           );
         }
       }
@@ -170,15 +185,16 @@ class ClientRepository extends BaseRepository<ClientModel> {
     final addressCacheKey = 'cached_address_$userId';
     final cachedAddresses = localDataSource.get(addressCacheKey);
     if (cachedAddresses is List) {
-      final list = cachedAddresses.where((item) {
-        if (item is Map) {
-          return item['client_id'] != clientId;
-        }
-        return true;
-      }).toList();
+      final list =
+          cachedAddresses.where((item) {
+            if (item is Map) {
+              return item['client_id'] != clientId;
+            }
+            return true;
+          }).toList();
       await localDataSource.save(addressCacheKey, list);
     }
-    
+
     // Note: Remote cascade delete should be handled by Supabase (ON DELETE CASCADE)
     // If not, we would need to delete items, accounts, and addresses manually here.
   }

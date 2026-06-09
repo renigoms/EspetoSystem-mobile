@@ -1,13 +1,13 @@
+import 'package:espetosystem/app/UI/home/components/image_manage.dart';
+import 'package:espetosystem/app/UI/home/components/person_info_dialog_custom.dart';
+import 'package:espetosystem/app/UI/home/extensions/string_extension.dart';
+import 'package:espetosystem/app/UI/home/extensions/user_extension.dart';
+import 'package:espetosystem/app/UI/home/widgets/styled_tile.dart';
 import 'package:espetosystem/app/UI/home/widgets/user_profile_avatar.dart';
-import 'package:espetosystem/app/core/widgets/default_form_field.dart';
-import 'package:espetosystem/app/core/widgets/elevated_button_custom.dart';
-import 'package:espetosystem/app/core/widgets/password_field.dart';
 import 'package:espetosystem/app/data/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class PersonalInfoScreen extends StatefulWidget {
   const PersonalInfoScreen({super.key});
@@ -17,55 +17,6 @@ class PersonalInfoScreen extends StatefulWidget {
 }
 
 class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
-  Color _withAlpha(Color color, double opacity) {
-    return color.withAlpha((opacity * 255).round().clamp(0, 255));
-  }
-
-  String? _avatarUrl(User? user) {
-    final metadata = user?.userMetadata;
-    final rawUrl =
-        metadata?['avatar_url'] ??
-        metadata?['picture'] ??
-        metadata?['photo_url'] ??
-        metadata?['avatar'] ??
-        metadata?['image_url'];
-
-    if (rawUrl is String && rawUrl.isNotEmpty) {
-      return rawUrl;
-    }
-
-    return null;
-  }
-
-  String _displayName(User? user) {
-    final metadata = user?.userMetadata;
-    final value =
-        (metadata?['full_name'] ??
-                metadata?['name'] ??
-                user?.email ??
-                'Usuário')
-            .toString()
-            .trim();
-
-    return value.isEmpty ? 'Usuário' : value;
-  }
-
-  String _fallbackLabel(String displayName) {
-    final parts =
-        displayName
-            .split(RegExp(r'\s+'))
-            .where((part) => part.isNotEmpty)
-            .toList();
-    if (parts.isEmpty) {
-      return 'U';
-    }
-
-    final first = parts.first;
-    final last = parts.length > 1 ? parts.last : '';
-    final initials = '${first[0]}${last.isNotEmpty ? last[0] : ''}';
-    return initials.toUpperCase();
-  }
-
   Future<void> _signOut(BuildContext context) async {
     await context.read<AuthRepository>().signOut();
     if (!context.mounted) {
@@ -74,214 +25,14 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     context.go('/');
   }
 
-  Future<void> _showEditNameDialog(
-    BuildContext context,
-    ThemeData theme,
-    AuthRepository authRepository,
-    String currentName,
-  ) async {
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => EditNameDialog(
-        currentName: currentName,
-        onSave: (newName) async {
-          try {
-            await authRepository.updateProfile(name: newName);
-            if (mounted) {
-              setState(() {}); // Força rebuild para pegar novos metadados
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Nome atualizado com sucesso')),
-              );
-            }
-          } catch (e) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Erro ao atualizar nome: $e')),
-              );
-            }
-          }
-        },
-      ),
-    );
-  }
-
-  Future<void> _updateProfilePhoto(
-    BuildContext context,
-    AuthRepository authRepository,
-  ) async {
-    final ImagePicker picker = ImagePicker();
-    try {
-      // 1. Seleciona a imagem da galeria
-      final XFile? image = await picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 512, // Limita o tamanho para performance
-        maxHeight: 512,
-        imageQuality: 80,
-      );
-
-      if (image != null) {
-        // Nota: Para um app de produção, você faria o upload da imagem
-        // para o Supabase Storage aqui e obteria a URL pública.
-        // Como estamos focados na lógica de metadados agora,
-        // vamos simular o salvamento de uma URL ou path.
-
-        // TODO: Implementar upload para Supabase Storage se necessário.
-        // Por enquanto, atualizamos apenas se tivéssemos a URL.
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Funcionalidade de upload de foto em desenvolvimento.'),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao selecionar foto: $e')),
-        );
-      }
-    }
-  }
-
-  Future<void> _showChangePasswordDialog(
-    BuildContext context,
-    ThemeData theme,
-    AuthRepository authRepository,
-    String email,
-  ) async {
-    final oldController = TextEditingController();
-    final newController = TextEditingController();
-    final confirmController = TextEditingController();
-
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setState) {
-            return Dialog(
-              backgroundColor: theme.colorScheme.secondary,
-              insetPadding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 24,
-              ),
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 380),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-                // padding: EdgeInsets.symmetric(horizontal: 5, vertical: 500),
-                child: Column(
-                  spacing: 20,
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        InkWell(
-                          borderRadius: BorderRadius.circular(8),
-                          onTap: () => Navigator.of(ctx).pop(),
-                          child: Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: Icon(
-                              Icons.close,
-                              size: 18,
-                              color: theme.colorScheme.onSurface,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    PasswordFormField(
-                      controller: oldController,
-                      theme: theme,
-                      name: "Senha Antiga",
-                    ),
-                    // Nova senha
-                    PasswordFormField(
-                      controller: newController,
-                      theme: theme,
-                      name: "Nova Senha",
-                    ),
-                    // Confirmar
-                    PasswordFormField(
-                      controller: confirmController,
-                      theme: theme,
-                      name: 'Confirme sua senha',
-                    ),
-                    ElevatedButtomCustom(
-                      theme: theme,
-                      title: "Salvar alterações",
-                      onPressed: () async {
-                        final old = oldController.text.trim();
-                        final nw = newController.text.trim();
-                        final conf = confirmController.text.trim();
-                        if (nw.isEmpty || conf.isEmpty || old.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Preencha todos os campos'),
-                            ),
-                          );
-                          return;
-                        }
-                        if (nw != conf) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('As senhas não coincidem'),
-                            ),
-                          );
-                          return;
-                        }
-                        try {
-                          final signIn = await authRepository.signInWithEmail(
-                            email,
-                            old,
-                          );
-                          if (signIn.user == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Senha antiga incorreta'),
-                              ),
-                            );
-                            return;
-                          }
-                          await authRepository.updatePassword(nw);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Senha atualizada com sucesso'),
-                              ),
-                            );
-                            Navigator.of(ctx).pop();
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Erro ao atualizar: $e')),
-                            );
-                          }
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authRepository = context.read<AuthRepository>();
     final currentUser = authRepository.supabaseClient.auth.currentUser;
-    final displayName = _displayName(currentUser);
+    final displayName = currentUser?.displayName;
     final email = currentUser?.email ?? 'Sem e-mail cadastrado';
-    final fallbackLabel = _fallbackLabel(displayName);
+    final fallbackLabel = displayName!.fallbackLabel;
 
     return Scaffold(
       appBar: AppBar(
@@ -302,10 +53,10 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               child: Column(
                 children: [
                   GestureDetector(
-                    onTap: () => _updateProfilePhoto(context, authRepository),
+                    onTap: () => updateProfilePhoto(context, authRepository),
                     child: UserProfileAvatar(
                       size: 88,
-                      avatarUrl: _avatarUrl(currentUser),
+                      avatarUrl: currentUser?.avatarUrl,
                       fallbackLabel: fallbackLabel,
                     ),
                   ),
@@ -327,187 +78,70 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               ),
             ),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 7),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      children: [
-                        _StyledTile(
-                          theme: theme,
-                          icon: Icons.info_outline,
-                          iconBg: _withAlpha(theme.colorScheme.tertiary, 0.12),
-                          iconColor: theme.colorScheme.tertiary,
-                          title: 'Alterar dados pessoais',
-                          onTap:
-                              () => _showEditNameDialog(
-                                context,
-                                theme,
-                                authRepository,
-                                displayName,
-                              ),
-                        ),
-                        _StyledTile(
-                          theme: theme,
-                          icon: Icons.lock_outline,
-                          iconBg: _withAlpha(theme.colorScheme.tertiary, 0.12),
-                          iconColor: theme.colorScheme.tertiary,
-                          title: 'Alterar senha',
-                          onTap:
-                              () => _showChangePasswordDialog(
-                                context,
-                                theme,
-                                authRepository,
-                                email,
-                              ),
-                        ),
-                      ],
-                    ),
-
-                    _StyledTile(
-                      theme: theme,
-                      icon: Icons.logout,
-                      iconBg: _withAlpha(theme.colorScheme.error, 0.08),
-                      iconColor: theme.colorScheme.error,
-                      title: 'Sair da sessão',
-                      trailing: Icon(
-                        Icons.close,
-                        color: theme.colorScheme.error,
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 7),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        children: [
+                          StyledTile(
+                            theme: theme,
+                            icon: Icons.info_outline,
+                            iconBg: theme.colorScheme.tertiary.withValues(
+                              alpha: 0.12,
+                            ),
+                            iconColor: theme.colorScheme.tertiary,
+                            title: 'Alterar dados pessoais',
+                            onTap:
+                                () => showEditNameDialog(
+                                  context,
+                                  theme,
+                                  authRepository,
+                                  displayName,
+                                  () {
+                                    setState(() {});
+                                  },
+                                ),
+                          ),
+                          StyledTile(
+                            theme: theme,
+                            icon: Icons.lock_outline,
+                            iconBg: theme.colorScheme.tertiary.withValues(
+                              alpha: 0.12,
+                            ),
+                            iconColor: theme.colorScheme.tertiary,
+                            title: 'Alterar senha',
+                            onTap:
+                                () => showChangePasswordDialog(
+                                  context,
+                                  theme,
+                                  authRepository,
+                                  email,
+                                ),
+                          ),
+                        ],
                       ),
-                      onTap: () => _signOut(context),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
-class EditNameDialog extends StatefulWidget {
-  final String currentName;
-  final Function(String) onSave;
-
-  const EditNameDialog({
-    super.key,
-    required this.currentName,
-    required this.onSave,
-  });
-
-  @override
-  State<EditNameDialog> createState() => _EditNameDialogState();
-}
-
-class _EditNameDialogState extends State<EditNameDialog> {
-  late TextEditingController _nameController;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.currentName);
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Dialog(
-      backgroundColor: theme.colorScheme.secondary,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 24.0),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.0)),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 400),
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            DefaultFormField(
-              name: 'Nome',
-              controller: _nameController,
-              theme: theme,
-              hintText: 'Seu nome completo',
-            ),
-            const SizedBox(height: 32.0),
-            ElevatedButtomCustom(
-              theme: theme,
-              title: 'Salvar Alterações',
-              onPressed: () {
-                widget.onSave(_nameController.text.trim());
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StyledTile extends StatelessWidget {
-  final ThemeData theme;
-  final IconData icon;
-  final Color iconBg;
-  final Color iconColor;
-  final String title;
-  final Widget? trailing;
-  final VoidCallback onTap;
-
-  const _StyledTile({
-    required this.theme,
-    required this.icon,
-    required this.iconBg,
-    required this.iconColor,
-    required this.title,
-    required this.onTap,
-    this.trailing,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      shape: Border(
-        top: BorderSide(width: 0.5, color: theme.colorScheme.onTertiary),
-      ),
-      color: theme.colorScheme.surface,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: iconBg,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: iconColor),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
+                      StyledTile(
+                        theme: theme,
+                        icon: Icons.logout,
+                        iconBg: theme.colorScheme.error.withValues(alpha: 0.08),
+                        iconColor: theme.colorScheme.error,
+                        title: 'Sair da sessão',
+                        trailing: Icon(
+                          Icons.close,
+                          color: theme.colorScheme.error,
+                        ),
+                        onTap: () => _signOut(context),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              trailing ??
-                  Icon(Icons.chevron_right, color: theme.colorScheme.tertiary),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -2,7 +2,7 @@ import 'address_model.dart';
 
 class ClientModel {
   final String? id;
-  final String? userId; // Link to the user who owns this client
+  final String? userId;
   final String name;
   final String description;
   final String phoneNumber;

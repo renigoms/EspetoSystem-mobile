@@ -1,4 +1,5 @@
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
+import 'package:espetosystem/app/UI/client/view_model/client_view_model.dart';
 import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
 import 'package:espetosystem/app/core/themes/color_theme.dart';
 import 'package:espetosystem/app/core/themes/text_theme.dart';
@@ -54,13 +55,24 @@ class MyApp extends StatelessWidget {
               (_) => HomeViewModel(
                 accountRepository: accountRepository,
                 clientRepository: clientRepository,
-                itemRepository: itemRepository,
-                itemAccountRepository: itemAccountRepository,
-                paymentRepository: paymentRepository,
+                // itemRepository: itemRepository,
+                // itemAccountRepository: itemAccountRepository,
+                // paymentRepository: paymentRepository,
                 supabaseClient: authRepository.supabaseClient,
               ),
         ),
         ChangeNotifierProvider(create: (_) => ThemeViewModel()),
+        ChangeNotifierProvider(
+          create:
+              (_) => ClientViewModel(
+                clientRepository,
+                authRepository.supabaseClient,
+                accountRepository,
+                itemRepository,
+                itemAccountRepository,
+                paymentRepository,
+              ),
+        ),
       ],
       child: Consumer2<ThemeViewModel, AuthViewModel>(
         builder: (context, themeViewModel, authViewModel, _) {

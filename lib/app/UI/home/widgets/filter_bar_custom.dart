@@ -40,7 +40,9 @@ class FilterBarCustom extends StatelessWidget {
                   color:
                       selected
                           ? theme.colorScheme.tertiary
-                          : theme.colorScheme.onSecondary.withOpacity(0.55),
+                          : theme.colorScheme.onSecondary.withValues(
+                            alpha: 0.55,
+                          ),
                 ),
                 borderRadius: BorderRadius.circular(38),
               ),

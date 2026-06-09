@@ -20,7 +20,7 @@ void main() async {
   // Inicialização do Supabase
   await Supabase.initialize(
     url: 'https://ccdrjqtyepypmwhdillk.supabase.co',
-    anonKey: 'sb_secret_6Kz6OGV8dTcoQRygqpzfug_5yMZmsCb',
+    publishableKey: 'sb_secret_6Kz6OGV8dTcoQRygqpzfug_5yMZmsCb',
   );
 
   // Inicialização do SharedPreferences

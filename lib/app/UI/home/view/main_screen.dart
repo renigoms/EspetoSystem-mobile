@@ -1,5 +1,4 @@
-import 'package:espetosystem/app/UI/home/components/client_form_sheet.dart';
-import 'package:espetosystem/app/UI/home/pages/client_search_page.dart';
+import 'package:espetosystem/app/UI/home/components/modal_custom.dart';
 import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
 import 'package:espetosystem/app/UI/home/widgets/app_bar.dart';
 import 'package:espetosystem/app/UI/home/widgets/client_card.dart';
@@ -22,20 +21,7 @@ class MainScreen extends StatelessWidget {
   ) async {
     final theme = Theme.of(context);
 
-    final ClientModel? created = await showModalBottomSheet<ClientModel>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      useRootNavigator: true,
-      backgroundColor: theme.colorScheme.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-      ),
-      clipBehavior: Clip.antiAlias,
-      builder: (BuildContext context) {
-        return const ClientFormSheet();
-      },
-    );
+    final ClientModel? created = await create(context, theme);
 
     if (created != null) {
       await viewModel.addClient(created);
@@ -46,15 +32,12 @@ class MainScreen extends StatelessWidget {
     BuildContext context,
     HomeViewModel viewModel,
   ) async {
-    final String? result = await Navigator.of(context).push<String>(
-      MaterialPageRoute(
-        builder: (BuildContext context) {
-          return ClientSearchPage(
-            clients: viewModel.clients,
-            initialQuery: viewModel.searchQuery,
-          );
-        },
-      ),
+    final String? result = await context.push<String>(
+      '/home/search',
+      extra: {
+        'clients': viewModel.clients,
+        'initialQuery': viewModel.searchQuery,
+      },
     );
 
     if (result != null) {
@@ -182,7 +165,10 @@ class MainScreen extends StatelessWidget {
                                                 const SizedBox(height: 10),
                                         itemBuilder: (context, index) {
                                           final client = clients[index];
-                                          final status = viewModel.accountStatuses[client.id] ?? 'LIMPA';
+                                          final status =
+                                              viewModel.accountStatuses[client
+                                                  .id] ??
+                                              'LIMPA';
                                           return ClientCard(
                                             client: client,
                                             status: status,
@@ -201,13 +187,6 @@ class MainScreen extends StatelessWidget {
               ),
             ),
           ),
-          floatingActionButton:
-              viewModel.isLoading && clients.isNotEmpty
-                  ? const FloatingActionButton(
-                    onPressed: null,
-                    child: CircularProgressIndicator(color: Colors.white),
-                  )
-                  : null,
         );
       },
     );

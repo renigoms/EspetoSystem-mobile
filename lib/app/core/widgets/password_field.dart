@@ -6,11 +6,13 @@ class PasswordFormField extends StatefulWidget {
   final ThemeData theme;
   final String name;
   final Function(String)? onChanged;
+  final String? Function(String?)? validate;
   const PasswordFormField({
     super.key,
     required this.controller,
     required this.theme,
     required this.name,
+    this.validate,
     this.onChanged,
   });
 
@@ -23,7 +25,7 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
   @override
   Widget build(BuildContext context) {
     return Column(
-      spacing: 16,
+      spacing: 5,
       children: [
         Row(
           children: [
@@ -35,6 +37,8 @@ class _PasswordFormFieldState extends State<PasswordFormField> {
           style: widget.theme.textTheme.labelSmall?.copyWith(
             color: widget.theme.colorScheme.onSurface,
           ),
+          validator: widget.validate,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           onChanged: widget.onChanged,
           obscureText: _visible,
           decoration: formFieldDecoration(

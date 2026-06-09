@@ -15,8 +15,7 @@ class AuthRepository {
   });
 
   Future<AuthResponse> signInWithGoogle() async {
-    final googleUser = await googleSignIn.authenticate(); 
-    if (googleUser == null) throw 'Login cancelado pelo usuário';
+    final googleUser = await googleSignIn.authenticate();
 
     final googleAuth = googleUser.authentication;
     final idToken = googleAuth.idToken;
@@ -54,7 +53,11 @@ class AuthRepository {
     return response;
   }
 
-  Future<AuthResponse> signUpWithEmail(String email, String password, String name) async {
+  Future<AuthResponse> signUpWithEmail(
+    String email,
+    String password,
+    String name,
+  ) async {
     final response = await supabaseClient.auth.signUp(
       email: email,
       password: password,
@@ -68,14 +71,10 @@ class AuthRepository {
 
   Future<void> _syncProfile(User user) async {
     // Ensure profile exists in Supabase 'profiles' table
-    final profileData = {
-      'id': user.id,
-      'login': user.email,
-      'role': 'user',
-    };
-    
+    final profileData = {'id': user.id, 'login': user.email, 'role': 'user'};
+
     await supabaseClient.from('profile').upsert(profileData);
-    
+
     // Cache profile locally
     await localCache.save('user_profile', profileData);
   }
@@ -94,9 +93,7 @@ class AuthRepository {
   }
 
   Future<void> updatePassword(String newPassword) async {
-    await supabaseClient.auth.updateUser(
-      UserAttributes(password: newPassword),
-    );
+    await supabaseClient.auth.updateUser(UserAttributes(password: newPassword));
   }
 
   Future<void> updateProfile({String? name, String? avatarUrl}) async {
@@ -111,11 +108,8 @@ class AuthRepository {
   }
 
   Future<AuthProfileModel?> getProfile(String userId) async {
-    final data = await supabaseClient
-        .from('profile')
-        .select()
-        .eq('id', userId)
-        .single();
+    final data =
+        await supabaseClient.from('profile').select().eq('id', userId).single();
     return AuthProfileModel.fromJson(data);
   }
 }

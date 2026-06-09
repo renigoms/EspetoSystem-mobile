@@ -118,7 +118,7 @@ class AuthViewModel extends ChangeNotifier {
   ) async {
     if (_authRepository == null) return "Erro de configuração";
     try {
-      final result = await _authRepository!.signUpWithEmail(
+      final result = await _authRepository.signUpWithEmail(
         email,
         password,
         name,
@@ -133,10 +133,11 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   Future<String> continueWithGoogleAction() async {
-    if (_authRepository == null)
+    if (_authRepository == null) {
       return "Erro de configuração: Repositório não inicializado";
+    }
     try {
-      final result = await _authRepository!.signInWithGoogle();
+      final result = await _authRepository.signInWithGoogle();
 
       if (result.user != null) {
         return "Sucesso: Bem-vindo ${result.user?.email}";
@@ -150,7 +151,7 @@ class AuthViewModel extends ChangeNotifier {
   Future<String> recoverPassword(String email) async {
     if (_authRepository == null) return "Erro de configuração do servidor.";
     try {
-      await _authRepository!.resetPassword(email);
+      await _authRepository.resetPassword(email);
       setPassRecoverySucc();
       return "true";
     } on AuthException catch (e) {
@@ -164,7 +165,7 @@ class AuthViewModel extends ChangeNotifier {
   Future<String> updatePassword(String newPassword) async {
     if (_authRepository == null) return "Erro de configuração do servidor.";
     try {
-      await _authRepository!.updatePassword(newPassword);
+      await _authRepository.updatePassword(newPassword);
       return "true";
     } on AuthException catch (e) {
       return e.message;

@@ -127,12 +127,12 @@ class HomeViewModel extends ChangeNotifier {
     if (_accountRepository == null || userId == null) return;
 
     final debt = getTotalDebtForClient(clientId);
-    final account = await _accountRepository!.getByClientId(clientId);
+    final account = await _accountRepository.getByClientId(clientId);
 
     if (account != null) {
       final newStatus = debt > 0 ? 'DEVENDO' : 'LIMPA';
       if (account.status != newStatus) {
-        await _accountRepository!.saveForUser(
+        await _accountRepository.saveForUser(
           AccountModel(id: account.id, clientId: clientId, status: newStatus),
           userId,
         );
@@ -158,7 +158,7 @@ class HomeViewModel extends ChangeNotifier {
     }
 
     try {
-      final account = await _accountRepository!.getByClientId(clientId);
+      final account = await _accountRepository.getByClientId(clientId);
       if (account?.id == null) {
         if (!_clientItems.containsKey(clientId)) {
           _clientItems[clientId] = [];
@@ -167,14 +167,14 @@ class HomeViewModel extends ChangeNotifier {
         return;
       }
 
-      final itemAccounts = await _itemAccountRepository!.getByAccountId(
+      final itemAccounts = await _itemAccountRepository.getByAccountId(
         account!.id!,
       );
       final List<PurchasedItemModel> loadedItems = [];
 
       for (final ia in itemAccounts) {
-        final itemData = await _itemRepository!.remoteDataSource.fetchById(
-          _itemRepository!.tableName,
+        final itemData = await _itemRepository.remoteDataSource.fetchById(
+          _itemRepository.tableName,
           ia.itemId,
         );
         final item = ItemModel.fromJson(itemData);
@@ -193,7 +193,7 @@ class HomeViewModel extends ChangeNotifier {
       // Load payments
       final paymentsRaw = await _paymentRepository!.remoteDataSource
           .fetchWithFilter(
-            _paymentRepository!.tableName,
+            _paymentRepository.tableName,
             'account_id',
             account.id!,
           );
@@ -451,9 +451,9 @@ class HomeViewModel extends ChangeNotifier {
         // 2. Procurar se já existe um item com essa descrição para evitar duplicidade
         ItemModel? item;
         try {
-          final existingItems = await _itemRepository!.remoteDataSource
+          final existingItems = await _itemRepository.remoteDataSource
               .fetchWithFilter(
-                _itemRepository!.tableName,
+                _itemRepository.tableName,
                 'description',
                 description,
               );
@@ -471,7 +471,7 @@ class HomeViewModel extends ChangeNotifier {
         // Se não encontrou, cria um novo
         if (item == null) {
           debugPrint('DEBUG: Item not found. Creating new one.');
-          item = await _itemRepository!.saveForUser(
+          item = await _itemRepository.saveForUser(
             ItemModel(description: description, measurementUnit: unidade),
             userId,
           );
@@ -483,10 +483,10 @@ class HomeViewModel extends ChangeNotifier {
           );
           // 3. Link to account
           try {
-            await _itemAccountRepository!.saveForUser(
+            await _itemAccountRepository.saveForUser(
               ItemAccountModel(
                 quantity: quantity,
-                itemId: item!.id!,
+                itemId: item.id!,
                 accountId: account!.id!,
                 unitValue: unitValue,
               ),
@@ -549,7 +549,7 @@ class HomeViewModel extends ChangeNotifier {
     }
 
     try {
-      final account = await _accountRepository!.getByClientId(clientId);
+      final account = await _accountRepository.getByClientId(clientId);
       if (account?.id == null) {
         debugPrint('DEBUG PAYMENT: Account not found for client: $clientId');
         return;
@@ -566,7 +566,7 @@ class HomeViewModel extends ChangeNotifier {
       );
 
       debugPrint('DEBUG PAYMENT: Calling paymentRepository.saveForUser');
-      final payment = await _paymentRepository!.saveForUser(
+      final payment = await _paymentRepository.saveForUser(
         paymentModel,
         userId,
       );
@@ -603,28 +603,28 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
-  Future<ClientModel?> saveClient(ClientModel client) async {
-    final userId = _currentUserId;
-    if (_clientRepository == null || userId == null) return null;
+  // Future<ClientModel?> saveClient(ClientModel client) async {
+  //   final userId = _currentUserId;
+  //   if (_clientRepository == null || userId == null) return null;
 
-    final saved = await _clientRepository!.saveClient(client, userId);
-    if (saved != null) {
-      final index = _clients.indexWhere((c) => c.id == saved.id);
-      if (index != -1) {
-        _clients[index] = saved;
-      } else {
-        _clients.add(saved);
-      }
-      notifyListeners();
-    }
-    return saved;
-  }
+  //   final saved = await _clientRepository.saveClient(client, userId);
+  //   if (saved != null) {
+  //     final index = _clients.indexWhere((c) => c.id == saved.id);
+  //     if (index != -1) {
+  //       _clients[index] = saved;
+  //     } else {
+  //       _clients.add(saved);
+  //     }
+  //     notifyListeners();
+  //   }
+  //   return saved;
+  // }
 
   Future<void> deleteClient(String clientId) async {
     final userId = _currentUserId;
     if (_clientRepository == null || userId == null) return;
 
-    await _clientRepository!.deleteClient(clientId, userId);
+    await _clientRepository.deleteClient(clientId, userId);
     _clients.removeWhere((c) => c.id == clientId);
     _accountStatuses.remove(clientId);
     _clientItems.remove(clientId);

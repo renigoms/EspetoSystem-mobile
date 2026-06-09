@@ -1,18 +1,20 @@
-import 'package:espetosystem/app/data/models/payment_model.dart';
-import 'package:flutter/services.dart';
-import 'package:espetosystem/app/UI/home/widgets/client_form_sheet.dart';
+import 'package:espetosystem/app/UI/client/components/dialog_custom.dart';
+import 'package:espetosystem/app/UI/client/components/modal_custom.dart';
+import 'package:espetosystem/app/UI/client/view_model/client_view_model.dart';
+import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
 import 'package:espetosystem/app/UI/home/widgets/client_avatar.dart';
+import 'package:espetosystem/app/core/widgets/default_form_field.dart';
+import 'package:espetosystem/app/core/widgets/elevated_button_custom.dart';
 import 'package:espetosystem/app/data/models/address_model.dart';
 import 'package:espetosystem/app/data/models/client_model.dart';
+import 'package:espetosystem/app/data/models/payment_model.dart';
 import 'package:espetosystem/app/data/models/purchased_item_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
-import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
-import 'package:espetosystem/app/core/widgets/default_form_field.dart';
-import 'package:espetosystem/app/core/widgets/elevated_button_custom.dart';
 
 class ClientDetailsShellPage extends StatefulWidget {
   const ClientDetailsShellPage({
@@ -47,68 +49,32 @@ class _ClientDetailsShellPageState extends State<ClientDetailsShellPage> {
     }
   }
 
-  Future<void> _showClientSettings(
+  Future<void> showClientSettings(
     BuildContext context,
     ThemeData theme,
     ClientModel client,
   ) async {
     // 1. Mostra o primeiro menu de opções e aguarda a escolha do usuário
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      useRootNavigator: true,
-      builder: (ctx) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(
-                  LucideIcons.edit,
-                  color: theme.colorScheme.tertiary,
-                ),
-                title: const Text('Editar dados'),
-                onTap: () => Navigator.of(ctx).pop('edit'),
-              ),
-              ListTile(
-                leading: Icon(
-                  LucideIcons.trash2,
-                  color: theme.colorScheme.error,
-                ),
-                title: Text(
-                  'Excluir cliente',
-                  style: TextStyle(color: theme.colorScheme.error),
-                ),
-                onTap: () => Navigator.of(ctx).pop('delete'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    final action = await actionModal(context, theme);
 
     // Se o usuário tocou fora, action será nula
     if (action == null || !context.mounted) return;
 
     if (action == 'edit') {
       // 2. Mostra o formulário de edição usando o contexto seguro da tela principal
-      final result = await showModalBottomSheet<ClientModel>(
-        context: context,
-        isScrollControlled: true,
-        useRootNavigator: true,
-        builder: (context) => ClientFormSheet(client: client),
-      );
+      final result = await resultModal(context, client);
 
       debugPrint(
         'DEBUG: Formulário de edição fechou. Retornou: ${result?.name}',
       );
 
       if (result != null && context.mounted) {
-        final viewModel = context.read<HomeViewModel>();
+        final viewModel = context.read<ClientViewModel>();
         debugPrint('DEBUG: Chamando viewModel.saveClient...');
         final savedClient = await viewModel.saveClient(result);
         debugPrint('DEBUG: viewModel retornou: ${savedClient?.name}');
 
-        if (savedClient != null && mounted) {
+        if (savedClient != null && context.mounted) {
           setState(() {
             debugPrint('DEBUG: Atualizando o UI com o cliente atualizado.');
             _client = savedClient;
@@ -117,73 +83,7 @@ class _ClientDetailsShellPageState extends State<ClientDetailsShellPage> {
       }
     } else if (action == 'delete') {
       // Lógica de exclusão (inalterada, mas agora em um contexto seguro)
-      final confirm = await showDialog<bool>(
-        context: context,
-        builder:
-            (ctx) => Dialog(
-              backgroundColor: theme.colorScheme.secondary,
-              insetPadding: const EdgeInsets.all(24.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0),
-              ),
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 400),
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Excluir cliente',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16.0),
-                    Text(
-                      'Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white70,
-                      ),
-                    ),
-                    const SizedBox(height: 24.0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.of(ctx).pop(false),
-                          child: Text(
-                            'Cancelar',
-                            style: TextStyle(
-                              color: theme.colorScheme.onSurface.withValues(
-                                alpha: 0.7,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: theme.colorScheme.error,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                          ),
-                          onPressed: () => Navigator.of(ctx).pop(true),
-                          child: const Text(
-                            'Excluir',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-      );
+      final confirm = await confirmDialog(context, theme);
 
       if (confirm == true && context.mounted) {
         final viewModel = context.read<HomeViewModel>();
@@ -214,7 +114,7 @@ class _ClientDetailsShellPageState extends State<ClientDetailsShellPage> {
             title: _LogoHeader(theme),
             actions: [
               IconButton(
-                onPressed: () => _showClientSettings(context, theme, _client),
+                onPressed: () => showClientSettings(context, theme, _client),
                 icon: Icon(
                   LucideIcons.settings,
                   color: theme.colorScheme.tertiary,

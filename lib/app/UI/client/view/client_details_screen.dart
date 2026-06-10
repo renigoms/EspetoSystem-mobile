@@ -65,7 +65,7 @@ class _ClientDetailsShellPageState extends State<ClientDetailsShellPage> {
       if (result != null && context.mounted) {
         final viewModel = context.read<ClientViewModel>();
         debugPrint('DEBUG: Chamando viewModel.saveClient...');
-        final savedClient = await viewModel.saveClient(result);
+        final savedClient = await viewModel.updateClient(result);
         debugPrint('DEBUG: viewModel retornou: ${savedClient?.name}');
 
         if (savedClient != null && context.mounted) {

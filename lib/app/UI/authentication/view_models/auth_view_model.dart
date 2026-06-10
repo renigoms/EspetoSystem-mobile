@@ -45,6 +45,8 @@ class AuthViewModel extends ChangeNotifier {
   bool get passwordFailVerify =>
       !_hasMinLength || !_hasNumberCase || !_hasUpperCase || !_hasSpecialCase;
 
+  User? get currentUser => _authRepository!.supabaseClient.auth.currentUser;
+
   void setIsLogin(bool value) {
     _isLogin = _isLogin != value ? !_isLogin : _isLogin;
     notifyListeners();
@@ -173,4 +175,12 @@ class AuthViewModel extends ChangeNotifier {
       return "Erro ao atualizar senha: $e";
     }
   }
+
+  Future<void> signOut() async => await _authRepository!.signOut();
+
+  Future<void> upadateProfile({String? name, String? avatarUrl}) async =>
+      _authRepository!.updateProfile(name: name, avatarUrl: avatarUrl);
+
+  Future<AuthResponse> singInWithEmail(String email, String password) async =>
+      _authRepository!.signInWithEmail(email, password);
 }

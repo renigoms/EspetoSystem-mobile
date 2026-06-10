@@ -1,6 +1,6 @@
 import 'package:espetosystem/app/UI/home/components/modal_custom.dart';
 import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
-import 'package:espetosystem/app/UI/home/widgets/app_bar.dart';
+import 'package:espetosystem/app/UI/home/widgets/app_bar_custom.dart';
 import 'package:espetosystem/app/UI/home/widgets/client_card.dart';
 import 'package:espetosystem/app/UI/home/widgets/empty_client_state.dart';
 import 'package:espetosystem/app/UI/home/widgets/filter_arrow.dart';

@@ -1,11 +1,7 @@
-import 'package:espetosystem/app/data/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-Future<void> updateProfilePhoto(
-  BuildContext context,
-  AuthRepository authRepository,
-) async {
+Future<void> updateProfilePhoto(BuildContext context) async {
   final ImagePicker picker = ImagePicker();
   try {
     // 1. Seleciona a imagem da galeria

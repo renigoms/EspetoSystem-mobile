@@ -36,12 +36,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider.value(value: authRepository),
-        Provider.value(value: accountRepository),
-        Provider.value(value: clientRepository),
-        Provider.value(value: itemRepository),
-        Provider.value(value: itemAccountRepository),
-        Provider.value(value: paymentRepository),
         ChangeNotifierProvider(
           create:
               (_) =>
@@ -55,9 +49,6 @@ class MyApp extends StatelessWidget {
               (_) => HomeViewModel(
                 accountRepository: accountRepository,
                 clientRepository: clientRepository,
-                // itemRepository: itemRepository,
-                // itemAccountRepository: itemAccountRepository,
-                // paymentRepository: paymentRepository,
                 supabaseClient: authRepository.supabaseClient,
               ),
         ),

@@ -1,10 +1,10 @@
+import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
 import 'package:espetosystem/app/UI/home/widgets/user_profile_avatar.dart';
 import 'package:espetosystem/app/core/themes/theme_view_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:espetosystem/app/data/repositories/auth_repository.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AppBarCustom extends StatelessWidget {
@@ -48,8 +48,8 @@ class AppBarCustom extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeMode = context.watch<ThemeViewModel>().themeMode;
-    final authRepository = context.read<AuthRepository>();
-    final currentUser = authRepository.supabaseClient.auth.currentUser;
+    final viewModel = context.read<AuthViewModel>();
+    final currentUser = viewModel.currentUser;
     return AppBar(
       automaticallyImplyLeading: false,
       toolbarHeight: 75,

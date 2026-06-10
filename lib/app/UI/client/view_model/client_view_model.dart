@@ -96,7 +96,7 @@ class ClientViewModel extends ChangeNotifier {
     }
   }
 
-  Future<ClientModel?> saveClient(ClientModel client) async {
+  Future<ClientModel?> updateClient(ClientModel client) async {
     final userId = _currentUserId;
     if (_clientRepository == null || userId == null) return null;
 

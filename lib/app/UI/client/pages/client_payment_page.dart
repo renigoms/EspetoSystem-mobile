@@ -1,4 +1,6 @@
 import 'package:espetosystem/app/UI/client/view_model/client_view_model.dart';
+import 'package:espetosystem/app/UI/client/view_model/item_view_model.dart';
+import 'package:espetosystem/app/UI/client/view_model/payment_view_model.dart';
 import 'package:espetosystem/app/UI/client/widgets/add_payment_dialog.dart';
 import 'package:espetosystem/app/UI/client/widgets/build_header_cell.dart';
 import 'package:espetosystem/app/UI/client/widgets/client_detail_scope.dart';
@@ -25,7 +27,7 @@ class _ClientPaymentsPageState extends State<ClientPaymentsPage> {
       if (mounted) {
         final client = ClientDetailsScope.clientOf(context);
         if (client.id != null) {
-          context.read<ClientViewModel>().loadItemsForClient(
+          context.read<ItemViewModel>().loadItemsForClient(
             client.id!,
           ); // This also loads payments
         }
@@ -36,7 +38,7 @@ class _ClientPaymentsPageState extends State<ClientPaymentsPage> {
   @override
   Widget build(BuildContext context) {
     final client = ClientDetailsScope.clientOf(context);
-    final viewModel = context.watch<ClientViewModel>();
+    final viewModel = context.watch<ItemViewModel>();
     final payments = viewModel.getPaymentsForClient(client.id ?? '');
 
     return ListView(
@@ -54,7 +56,7 @@ class _ClientPaymentsPageState extends State<ClientPaymentsPage> {
             );
 
             if (result != null && context.mounted) {
-              final viewModel = context.read<ClientViewModel>();
+              final viewModel = context.read<PaymentViewModel>();
               if (client.id != null) {
                 await viewModel.addPaymentToClientAccount(client.id!, result);
               }

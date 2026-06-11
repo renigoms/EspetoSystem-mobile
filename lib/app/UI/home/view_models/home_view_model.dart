@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:espetosystem/app/core/components/view_model_components.dart';
 import 'package:espetosystem/app/data/models/account_model.dart';
 import 'package:espetosystem/app/data/models/client_model.dart';
 import 'package:espetosystem/app/data/models/payment_model.dart';
@@ -64,9 +65,9 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  String? get _currentUserId =>
-      _supabaseClient.auth.currentSession?.user.id ??
-      _supabaseClient.auth.currentUser?.id;
+  // String? get _currentUserId =>
+  //     _supabaseClient.auth.currentSession?.user.id ??
+  //     _supabaseClient.auth.currentUser?.id;
 
   bool _isLoading = false;
   bool get isLoading => _isLoading;
@@ -85,7 +86,7 @@ class HomeViewModel extends ChangeNotifier {
       _clientPayments[clientId] ?? [];
 
   Future<void> loadClients() async {
-    final userId = _currentUserId;
+    final userId = currentUserId(_supabaseClient);
     if (_clientRepository == null || userId == null) return;
 
     final int generation = ++_loadGeneration;
@@ -173,7 +174,7 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   Future<void> addClient(ClientModel client) async {
-    final userId = _currentUserId;
+    final userId = currentUserId(_supabaseClient);
     _loadGeneration++;
 
     _clients.add(client);
@@ -256,7 +257,7 @@ class HomeViewModel extends ChangeNotifier {
   }
 
   Future<void> markClientAccountAsDevendo(String clientId) async {
-    final userId = _currentUserId;
+    final userId = currentUserId(_supabaseClient);
     if (_accountRepository == null || userId == null) {
       return;
     }

@@ -1,4 +1,4 @@
-import 'package:espetosystem/app/UI/client/view_model/client_view_model.dart';
+import 'package:espetosystem/app/UI/client/view_model/item_view_model.dart';
 import 'package:espetosystem/app/UI/client/widgets/build_header_cell.dart';
 import 'package:espetosystem/app/UI/client/widgets/client_detail_scope.dart';
 import 'package:espetosystem/app/UI/client/widgets/client_header.dart';
@@ -25,7 +25,7 @@ class _ClientDetailsPageState extends State<ClientDetailsPage> {
       if (mounted) {
         final client = ClientDetailsScope.clientOf(context);
         if (client.id != null) {
-          context.read<ClientViewModel>().loadItemsForClient(client.id!);
+          context.read<ItemViewModel>().loadItemsForClient(client.id!);
         }
       }
     });
@@ -35,7 +35,7 @@ class _ClientDetailsPageState extends State<ClientDetailsPage> {
   Widget build(BuildContext context) {
     final client = ClientDetailsScope.clientOf(context);
     // Observa o ViewModel para reconstruir a lista automaticamente
-    final viewModel = context.watch<ClientViewModel>();
+    final viewModel = context.watch<ItemViewModel>();
     final items = viewModel.getItemsForClient(client.id ?? '');
 
     return ListView(

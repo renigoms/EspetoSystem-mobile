@@ -1,4 +1,4 @@
-import 'package:espetosystem/app/UI/client/view_model/item_view_model.dart';
+import 'package:espetosystem/app/UI/client/view_model/client_account_view_model.dart';
 import 'package:espetosystem/app/UI/client/widgets/client_detail_scope.dart';
 import 'package:espetosystem/app/data/models/purchased_item_model.dart';
 import 'package:flutter/material.dart';
@@ -34,9 +34,9 @@ class ItemsTitle extends StatelessWidget {
               '/home/client/add-item',
             );
 
-            if (result != null) {
+            if (result != null && context.mounted) {
               // Persiste no banco de dados e notifica o ViewModel
-              final viewModel = context.read<ItemViewModel>();
+              final viewModel = context.read<ClientAccountViewModel>();
               final client = ClientDetailsScope.clientOf(context);
               if (client.id != null) {
                 await viewModel.addItemsToClientAccount(client.id!, result);

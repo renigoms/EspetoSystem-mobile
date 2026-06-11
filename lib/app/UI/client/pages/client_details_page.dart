@@ -1,10 +1,10 @@
-import 'package:espetosystem/app/UI/client/view_model/item_view_model.dart';
-import 'package:espetosystem/app/UI/client/widgets/build_header_cell.dart';
+import 'package:espetosystem/app/UI/client/view_model/client_account_view_model.dart';
 import 'package:espetosystem/app/UI/client/widgets/client_detail_scope.dart';
 import 'package:espetosystem/app/UI/client/widgets/client_header.dart';
 import 'package:espetosystem/app/UI/client/widgets/debt_summary_card.dart';
 import 'package:espetosystem/app/UI/client/widgets/items_title.dart';
 import 'package:espetosystem/app/UI/client/widgets/purchased_item_tile.dart';
+import 'package:espetosystem/app/UI/client/widgets/build_header_cell.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -20,12 +20,11 @@ class _ClientDetailsPageState extends State<ClientDetailsPage> {
   @override
   void initState() {
     super.initState();
-    // Carrega os dados apenas uma vez ao entrar na tela
     Future.microtask(() {
       if (mounted) {
         final client = ClientDetailsScope.clientOf(context);
         if (client.id != null) {
-          context.read<ItemViewModel>().loadItemsForClient(client.id!);
+          context.read<ClientAccountViewModel>().loadItemsForClient(client.id!);
         }
       }
     });
@@ -34,8 +33,7 @@ class _ClientDetailsPageState extends State<ClientDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final client = ClientDetailsScope.clientOf(context);
-    // Observa o ViewModel para reconstruir a lista automaticamente
-    final viewModel = context.watch<ItemViewModel>();
+    final viewModel = context.watch<ClientAccountViewModel>();
     final items = viewModel.getItemsForClient(client.id ?? '');
 
     return ListView(

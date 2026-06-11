@@ -1,7 +1,6 @@
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
 import 'package:espetosystem/app/UI/client/view_model/client_view_model.dart';
-import 'package:espetosystem/app/UI/client/view_model/item_view_model.dart';
-import 'package:espetosystem/app/UI/client/view_model/payment_view_model.dart';
+import 'package:espetosystem/app/UI/client/view_model/client_account_view_model.dart';
 import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
 import 'package:espetosystem/app/core/themes/color_theme.dart';
 import 'package:espetosystem/app/core/themes/text_theme.dart';
@@ -10,6 +9,7 @@ import 'package:espetosystem/app/routes/general_router.dart';
 import 'package:espetosystem/app/data/repositories/item_repository.dart';
 import 'package:espetosystem/app/data/repositories/item_account_repository.dart';
 import 'package:espetosystem/app/data/repositories/payment_repository.dart';
+import 'package:espetosystem/app/data/services/client_account_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:espetosystem/app/data/repositories/auth_repository.dart';
@@ -39,47 +39,40 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create:
-              (_) =>
-                  AuthViewModel(authRepository: authRepository)
-                    ..onPasswordRecovery = (route) {
-                      routes.push(route);
-                    },
+          create: (_) => AuthViewModel(authRepository: authRepository)
+            ..onPasswordRecovery = (route) {
+              routes.push(route);
+            },
         ),
         ChangeNotifierProvider(
-          create:
-              (_) => HomeViewModel(
-                accountRepository: accountRepository,
-                clientRepository: clientRepository,
-                supabaseClient: authRepository.supabaseClient,
-              ),
+          create: (_) => HomeViewModel(
+            accountRepository: accountRepository,
+            clientRepository: clientRepository,
+            supabaseClient: authRepository.supabaseClient,
+          ),
         ),
         ChangeNotifierProvider(create: (_) => ThemeViewModel()),
         ChangeNotifierProvider(
-          create:
-              (_) => ClientViewModel(
-                clientRepository,
-                authRepository.supabaseClient,
-              ),
+          create: (_) => ClientViewModel(
+            clientRepository,
+            authRepository.supabaseClient,
+          ),
         ),
-        ChangeNotifierProvider(
-          create:
-              (_) => ItemViewModel(
-                itemRepository,
-                itemAccountRepository,
-                accountRepository,
-                authRepository.supabaseClient,
-                paymentRepository,
-              ),
+        ProxyProvider0<ClientAccountService>(
+          update: (_, __) => ClientAccountService(
+            accountRepository: accountRepository,
+            itemRepository: itemRepository,
+            itemAccountRepository: itemAccountRepository,
+            paymentRepository: paymentRepository,
+          ),
         ),
-
-        ChangeNotifierProvider(
-          create:
-              (_) => PaymentViewModel(
-                authRepository.supabaseClient,
-                accountRepository,
-                paymentRepository,
-              ),
+        ChangeNotifierProxyProvider<ClientAccountService, ClientAccountViewModel>(
+          create: (context) => ClientAccountViewModel(
+            context.read<ClientAccountService>(),
+            authRepository.supabaseClient,
+          ),
+          update: (context, service, previous) =>
+              previous ?? ClientAccountViewModel(service, authRepository.supabaseClient),
         ),
       ],
       child: Consumer2<ThemeViewModel, AuthViewModel>(

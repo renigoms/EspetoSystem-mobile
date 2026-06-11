@@ -37,8 +37,7 @@ class AddPaymentDialogState extends State<AddPaymentDialog> {
           children: [
             Text(
               'Registrar Pagamento',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: Colors.white,
+              style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
             ),

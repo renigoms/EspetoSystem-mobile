@@ -21,7 +21,6 @@ class ClientFormSheet extends StatefulWidget {
 
 class _ClientFormSheetState extends State<ClientFormSheet> {
   final _formKey = GlobalKey<FormState>();
-  // final _imagePicker = ImagePicker();
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _cpfController;
@@ -67,7 +66,6 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
     }
 
     final number = int.tryParse(_numberController.text.trim()) ?? 0;
-    // final isEdit = widget.client != null;
     final clientId = widget.client?.id ?? Uuid().v4();
 
     Navigator.of(context).pop(

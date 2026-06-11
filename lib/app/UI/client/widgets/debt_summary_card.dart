@@ -1,4 +1,4 @@
-import 'package:espetosystem/app/UI/client/view_model/item_view_model.dart';
+import 'package:espetosystem/app/UI/client/view_model/client_account_view_model.dart';
 import 'package:espetosystem/app/UI/client/widgets/client_detail_scope.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,7 +11,7 @@ class DebtSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final client = ClientDetailsScope.clientOf(context);
-    final viewModel = context.watch<ItemViewModel>();
+    final viewModel = context.watch<ClientAccountViewModel>();
 
     final double totalDebt = viewModel.getTotalDebtForClient(client.id ?? '');
     final String formattedDebt =

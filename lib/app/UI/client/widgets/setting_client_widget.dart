@@ -13,15 +13,13 @@ class SettingClientWidget extends StatelessWidget {
         children: [
           ListTile(
             leading: Icon(LucideIcons.edit, color: theme.colorScheme.tertiary),
-            title: const Text('Editar dados'),
+            title: Text('Editar dados', style: theme.textTheme.titleMedium),
             onTap: () => Navigator.of(context).pop('edit'),
           ),
+          Divider(color: theme.colorScheme.onTertiary, thickness: 0.5),
           ListTile(
             leading: Icon(LucideIcons.trash2, color: theme.colorScheme.error),
-            title: Text(
-              'Excluir cliente',
-              style: TextStyle(color: theme.colorScheme.error),
-            ),
+            title: Text('Excluir cliente', style: theme.textTheme.titleMedium),
             onTap: () => Navigator.of(context).pop('delete'),
           ),
         ],

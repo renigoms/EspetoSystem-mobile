@@ -21,6 +21,14 @@ class AccountRepository extends BaseRepository<AccountModel> {
       'client_id',
       clientId,
     );
-    return results.isNotEmpty ? fromJson(results.first) : null;
+    
+    // Filtramos apenas as que não estão pagas e ordenamos pela data mais recente
+    final activeAccounts = results
+        .map((json) => fromJson(json))
+        .where((account) => account.status != 'PAGA')
+        .toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+    return activeAccounts.isNotEmpty ? activeAccounts.first : null;
   }
 }

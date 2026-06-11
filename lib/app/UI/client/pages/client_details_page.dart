@@ -46,7 +46,6 @@ class _ClientDetailsPageState extends State<ClientDetailsPage> {
         ItemsTitle(
           onAdd: (_) {
             // A atualização agora é gerida inteiramente pelo ViewModel
-            // para evitar conflitos de estado.
           },
         ),
         const SizedBox(height: 14),
@@ -91,6 +90,7 @@ class _ClientDetailsPageState extends State<ClientDetailsPage> {
                 BuildHeaderCell('Descrição', 2),
                 BuildHeaderCell('V. Unit.', 2),
                 BuildHeaderCell('Total', 2),
+                const SizedBox(width: 48), // Espaço para os botões de ação
               ],
             ),
           ),

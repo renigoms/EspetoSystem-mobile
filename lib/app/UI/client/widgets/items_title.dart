@@ -15,6 +15,7 @@ class ItemsTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final actionColor = theme.colorScheme.tertiary;
 
     return Row(
       children: [
@@ -28,14 +29,13 @@ class ItemsTitle extends StatelessWidget {
             ),
           ),
         ),
-        IconButton(
+        TextButton.icon(
           onPressed: () async {
             final result = await context.push<List<Map<String, dynamic>>>(
               '/home/client/add-item',
             );
 
             if (result != null && context.mounted) {
-              // Persiste no banco de dados e notifica o ViewModel
               final viewModel = context.read<ClientAccountViewModel>();
               final client = ClientDetailsScope.clientOf(context);
               if (client.id != null) {
@@ -43,14 +43,23 @@ class ItemsTitle extends StatelessWidget {
               }
             }
           },
-          visualDensity: VisualDensity.compact,
-          constraints: const BoxConstraints.tightFor(width: 28, height: 28),
-          padding: EdgeInsets.zero,
-          tooltip: 'Adicionar item',
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
           icon: Icon(
-            LucideIcons.badgePlus,
-            color: theme.colorScheme.onSurface,
-            size: 19,
+            LucideIcons.plus,
+            color: actionColor,
+            size: 16,
+          ),
+          label: Text(
+            'Adicionar Item',
+            style: GoogleFonts.roboto(
+              color: actionColor,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],

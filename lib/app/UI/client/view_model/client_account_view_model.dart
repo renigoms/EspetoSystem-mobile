@@ -100,6 +100,97 @@ class ClientAccountViewModel extends BaseViewModel {
     }
   }
 
+  Future<void> deleteItem(String clientId, String itemAccountId) async {
+    final userId = currentUserId(_supabaseClient);
+    if (userId == null) return;
+
+    try {
+      await _service.deleteItemAccount(itemAccountId, userId);
+      
+      // Remove da lista local
+      if (clientItems.containsKey(clientId)) {
+        clientItems[clientId] = clientItems[clientId]!
+            .where((item) => item.id != itemAccountId)
+            .toList();
+      }
+      
+      await _updateStatus(clientId);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error deleting item: $e');
+    }
+  }
+
+  Future<void> deletePayment(String clientId, String paymentId) async {
+    final userId = currentUserId(_supabaseClient);
+    if (userId == null) return;
+
+    try {
+      await _service.deletePayment(paymentId, userId);
+
+      // Remove da lista local
+      if (clientPayments.containsKey(clientId)) {
+        clientPayments[clientId] = clientPayments[clientId]!
+            .where((p) => p.id != paymentId)
+            .toList();
+      }
+
+      await _updateStatus(clientId);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error deleting payment: $e');
+    }
+  }
+
+  Future<void> clearAccount(String clientId) async {
+    final userId = currentUserId(_supabaseClient);
+    if (userId == null) return;
+
+    try {
+      final account = await _service.accountRepository.getByClientId(clientId);
+      if (account?.id != null) {
+        await _service.clearAccount(account!.id!, userId);
+        
+        // Limpa localmente para forçar a criação de uma nova conta no próximo load/add
+        clientItems.remove(clientId);
+        clientPayments.remove(clientId);
+        accountStatuses[clientId] = 'LIMPA';
+        
+        // Recarrega (vai criar uma nova conta se necessário)
+        await loadItemsForClient(clientId, force: true);
+      }
+    } catch (e) {
+      debugPrint('Error clearing account: $e');
+    }
+  }
+
+  Future<void> updateItem(
+    String clientId, 
+    String itemAccountId, 
+    String description,
+    int quantity, 
+    double unitValue
+  ) async {
+    final userId = currentUserId(_supabaseClient);
+    if (userId == null) return;
+
+    try {
+      await _service.updateItemAccount(itemAccountId, description, quantity, unitValue, userId);
+      
+      // Recarrega os itens para garantir que a UI reflita os valores formatados corretamente
+      // Ou podemos atualizar localmente se preferir performance
+      final account = await _service.accountRepository.getByClientId(clientId);
+      if (account?.id != null) {
+        clientItems[clientId] = await _service.loadItems(account!.id!);
+      }
+      
+      await _updateStatus(clientId);
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error updating item: $e');
+    }
+  }
+
   Future<void> _updateStatus(String clientId) async {
     accountStatuses[clientId] = await getStatusIfNeeded(
       clientId,

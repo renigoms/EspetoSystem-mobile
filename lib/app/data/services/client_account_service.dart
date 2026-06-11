@@ -22,7 +22,10 @@ class ClientAccountService {
     required this.paymentRepository,
   });
 
-  Future<AccountModel?> getOrCreateAccount(String clientId, String userId) async {
+  Future<AccountModel?> getOrCreateAccount(
+    String clientId,
+    String userId,
+  ) async {
     var account = await accountRepository.getByClientId(clientId);
     if (account == null) {
       account = await accountRepository.saveForUser(
@@ -51,6 +54,7 @@ class ClientAccountService {
 
       loadedItems.add(
         PurchasedItemModel(
+          id: ia.id, // Agora capturamos o ID para delete/update
           quantity: ia.quantity,
           unit: item.measurementUnit,
           description: item.description,
@@ -62,15 +66,16 @@ class ClientAccountService {
   }
 
   Future<List<PaymentModel>> loadPayments(String accountId) async {
-    final paymentsRaw = await paymentRepository.remoteDataSource.fetchWithFilter(
-      paymentRepository.tableName,
-      'account_id',
-      accountId,
-    );
+    final paymentsRaw = await paymentRepository.remoteDataSource
+        .fetchWithFilter(paymentRepository.tableName, 'account_id', accountId);
     return paymentsRaw.map((p) => PaymentModel.fromJson(p)).toList();
   }
 
-  Future<PaymentModel?> savePayment(String accountId, double valor, String userId) async {
+  Future<PaymentModel?> savePayment(
+    String accountId,
+    double valor,
+    String userId,
+  ) async {
     final paymentModel = PaymentModel(
       accountId: accountId,
       date: DateTime.now(),
@@ -79,14 +84,19 @@ class ClientAccountService {
     return await paymentRepository.saveForUser(paymentModel, userId);
   }
 
-  Future<ItemModel> getOrCreateItem(String description, String unit, String userId) async {
+  Future<ItemModel> getOrCreateItem(
+    String description,
+    String unit,
+    String userId,
+  ) async {
     ItemModel? item;
     try {
-      final existingItems = await itemRepository.remoteDataSource.fetchWithFilter(
-        itemRepository.tableName,
-        'description',
-        description,
-      );
+      final existingItems = await itemRepository.remoteDataSource
+          .fetchWithFilter(
+            itemRepository.tableName,
+            'description',
+            description,
+          );
       if (existingItems.isNotEmpty) {
         item = ItemModel.fromJson(existingItems.first);
       }
@@ -94,16 +104,20 @@ class ClientAccountService {
       debugPrint('Error searching for existing item: $e');
     }
 
-    if (item == null) {
-      item = await itemRepository.saveForUser(
-        ItemModel(description: description, measurementUnit: unit),
-        userId,
-      );
-    }
+    item ??= await itemRepository.saveForUser(
+      ItemModel(description: description, measurementUnit: unit),
+      userId,
+    );
     return item!;
   }
 
-  Future<void> linkItemToAccount(String itemId, String accountId, int quantity, double unitValue, String userId) async {
+  Future<void> linkItemToAccount(
+    String itemId,
+    String accountId,
+    int quantity,
+    double unitValue,
+    String userId,
+  ) async {
     await itemAccountRepository.saveForUser(
       ItemAccountModel(
         quantity: quantity,
@@ -113,5 +127,72 @@ class ClientAccountService {
       ),
       userId,
     );
+  }
+
+  Future<void> deleteItemAccount(String id, String userId) async {
+    await itemAccountRepository.deleteById(id, userId);
+  }
+
+  Future<void> deletePayment(String id, String userId) async {
+    await paymentRepository.deleteById(id, userId);
+  }
+
+  Future<void> clearAccount(String accountId, String userId) async {
+    final results = await accountRepository.remoteDataSource.fetchWithFilter(
+      accountRepository.tableName,
+      'id',
+      accountId,
+    );
+
+    if (results.isNotEmpty) {
+      final current = AccountModel.fromJson(results.first);
+      final updated = AccountModel(
+        id: accountId,
+        clientId: current.clientId,
+        createdAt: current.createdAt,
+        status: 'PAGA',
+      );
+      await accountRepository.saveForUser(updated, userId);
+    }
+  }
+
+  Future<void> updateItemAccount(
+    String id,
+    String description,
+    int quantity,
+    double unitValue,
+    String userId,
+  ) async {
+    // Primeiro buscamos o registro atual para não perder item_id e account_id
+    final results = await itemAccountRepository.remoteDataSource
+        .fetchWithFilter(itemAccountRepository.tableName, 'id', id);
+
+    if (results.isNotEmpty) {
+      final current = ItemAccountModel.fromJson(results.first);
+
+      // Buscamos ou criamos o item com a nova descrição
+      // Mantemos a unidade do item original por enquanto, ou buscamos do item original
+      final itemData = await itemRepository.remoteDataSource.fetchById(
+        itemRepository.tableName,
+        current.itemId,
+      );
+      final originalItem = ItemModel.fromJson(itemData);
+
+      final newItem = await getOrCreateItem(
+        description,
+        originalItem.measurementUnit,
+        userId,
+      );
+
+      final updated = ItemAccountModel(
+        id: id,
+        quantity: quantity,
+        unitValue: unitValue,
+        itemId: newItem.id!,
+        accountId: current.accountId,
+        createdAt: current.createdAt,
+      );
+      await itemAccountRepository.saveForUser(updated, userId);
+    }
   }
 }

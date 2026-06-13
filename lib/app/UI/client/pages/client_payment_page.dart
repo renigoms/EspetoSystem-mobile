@@ -97,10 +97,12 @@ class _ClientPaymentsPageState extends State<ClientPaymentsPage> {
               ),
             ),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                BuildHeaderCell('Data', 1),
-                BuildHeaderCell('Dinheiro', 2),
-                BuildHeaderCell('Valor', 1),
+                BuildHeaderCell('Data'),
+                SizedBox(),
+                BuildHeaderCell('Forma de Pagamento'),
+                BuildHeaderCell('Valor'),
               ],
             ),
           ),

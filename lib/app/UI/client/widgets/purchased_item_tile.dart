@@ -66,11 +66,13 @@ class PurchasedItemTile extends StatelessWidget {
           ),
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              flex: 1,
+              flex: 0,
               child: Text(
                 '${item.quantity}',
+                textAlign: TextAlign.center,
                 style: GoogleFonts.roboto(
                   color: mutedTextColor,
                   fontSize: 14,
@@ -79,9 +81,10 @@ class PurchasedItemTile extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 1,
+              flex: 0,
               child: Text(
                 item.unit,
+                textAlign: TextAlign.center,
                 style: GoogleFonts.roboto(
                   color: mutedTextColor,
                   fontSize: 14,
@@ -90,9 +93,10 @@ class PurchasedItemTile extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 2,
+              flex: 0,
               child: Text(
                 item.description,
+                textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.roboto(
                   color: theme.colorScheme.onSurface,
@@ -102,9 +106,10 @@ class PurchasedItemTile extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 2,
+              flex: 0,
               child: Text(
                 item.value,
+                textAlign: TextAlign.center,
                 style: GoogleFonts.roboto(
                   color: theme.colorScheme.onSurface,
                   fontSize: 14,
@@ -113,9 +118,10 @@ class PurchasedItemTile extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 2,
+              flex: 0,
               child: Text(
                 totalFormatted,
+                textAlign: TextAlign.center,
                 style: GoogleFonts.roboto(
                   color: theme.colorScheme.onSurface,
                   fontSize: 14,

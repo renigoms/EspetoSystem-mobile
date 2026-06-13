@@ -10,6 +10,7 @@ import 'package:espetosystem/app/data/repositories/item_repository.dart';
 import 'package:espetosystem/app/data/repositories/item_account_repository.dart';
 import 'package:espetosystem/app/data/repositories/payment_repository.dart';
 import 'package:espetosystem/app/data/services/client_account_service.dart';
+import 'package:espetosystem/app/data/services/local_cache_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:espetosystem/app/data/repositories/auth_repository.dart';
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
   final ItemRepository itemRepository;
   final ItemAccountRepository itemAccountRepository;
   final PaymentRepository paymentRepository;
+  final LocalCacheService localCacheService;
 
   const MyApp({
     super.key,
@@ -32,6 +34,7 @@ class MyApp extends StatelessWidget {
     required this.itemRepository,
     required this.itemAccountRepository,
     required this.paymentRepository,
+    required this.localCacheService,
   });
 
   @override
@@ -53,7 +56,9 @@ class MyApp extends StatelessWidget {
             supabaseClient: authRepository.supabaseClient,
           ),
         ),
-        ChangeNotifierProvider(create: (_) => ThemeViewModel()),
+        ChangeNotifierProvider(
+          create: (_) => ThemeViewModel(localCacheService),
+        ),
         ChangeNotifierProvider(
           create: (_) => ClientViewModel(
             clientRepository,

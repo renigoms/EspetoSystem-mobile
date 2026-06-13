@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:espetosystem/app/data/models/auth_profile_model.dart';
@@ -105,6 +106,44 @@ class AuthRepository {
         },
       ),
     );
+  }
+
+  Future<String> uploadAvatar(String userId, String filePath) async {
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        throw 'Arquivo não encontrado no caminho: $filePath';
+      }
+
+      final bytes = await file.readAsBytes();
+      final fileExtension = filePath.split('.').last.toLowerCase();
+      final fileName = 'profile_photo.${DateTime.now().millisecondsSinceEpoch}.$fileExtension';
+      final path = '$userId/$fileName';
+
+      // Determina o content-type de forma segura
+      String contentType = 'image/jpeg';
+      if (fileExtension == 'png') contentType = 'image/png';
+      if (fileExtension == 'gif') contentType = 'image/gif';
+      if (fileExtension == 'webp') contentType = 'image/webp';
+
+      await supabaseClient.storage.from('avatars').uploadBinary(
+        path,
+        bytes,
+        fileOptions: FileOptions(
+          cacheControl: '3600',
+          upsert: true,
+          contentType: contentType,
+        ),
+      );
+
+      final rawUrl = supabaseClient.storage.from('avatars').getPublicUrl(path);
+      // O timestamp ajuda a evitar cache de versões antigas da imagem
+      return '$rawUrl?t=${DateTime.now().millisecondsSinceEpoch}';
+    } on StorageException catch (e) {
+      throw 'Erro no Storage do Supabase: ${e.message} (Status: ${e.statusCode})';
+    } catch (e) {
+      throw 'Erro inesperado ao fazer upload da imagem: $e';
+    }
   }
 
   Future<AuthProfileModel?> getProfile(String userId) async {

@@ -178,8 +178,15 @@ class AuthViewModel extends ChangeNotifier {
 
   Future<void> signOut() async => await _authRepository!.signOut();
 
-  Future<void> upadateProfile({String? name, String? avatarUrl}) async =>
-      _authRepository!.updateProfile(name: name, avatarUrl: avatarUrl);
+  Future<void> updateProfile({String? name, String? avatarUrl}) async {
+    await _authRepository!.updateProfile(name: name, avatarUrl: avatarUrl);
+    notifyListeners();
+  }
+
+  Future<String> uploadAvatar(String userId, String filePath) async {
+    final url = await _authRepository!.uploadAvatar(userId, filePath);
+    return url;
+  }
 
   Future<AuthResponse> singInWithEmail(String email, String password) async =>
       _authRepository!.signInWithEmail(email, password);

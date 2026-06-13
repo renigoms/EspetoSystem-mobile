@@ -85,6 +85,7 @@ void main() async {
       itemRepository: itemRepository,
       itemAccountRepository: itemAccountRepository,
       paymentRepository: paymentRepository,
+      localCacheService: localCacheService,
     ),
   );
 }

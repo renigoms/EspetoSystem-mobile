@@ -18,7 +18,7 @@ Future<void> showEditNameDialog(
           currentName: currentName,
           onSave: (newName) async {
             try {
-              await context.read<AuthViewModel>().upadateProfile(name: newName);
+              await context.read<AuthViewModel>().updateProfile(name: newName);
               if (context.mounted) {
                 onUpdate(); // Força rebuild para pegar novos metadados
                 ScaffoldMessenger.of(context).showSnackBar(

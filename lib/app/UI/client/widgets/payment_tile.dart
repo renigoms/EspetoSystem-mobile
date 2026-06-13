@@ -24,8 +24,12 @@ class PaymentTile extends StatelessWidget {
         'R\$ ${payment.value.toStringAsFixed(2).replaceAll('.', ',')}';
 
     return Dismissible(
-      key: Key(payment.id ?? 'payment_${payment.date.millisecondsSinceEpoch}_${payment.value}'),
-      direction: DismissDirection.endToStart, // Apenas da direita para a esquerda
+      key: Key(
+        payment.id ??
+            'payment_${payment.date.millisecondsSinceEpoch}_${payment.value}',
+      ),
+      direction:
+          DismissDirection.endToStart, // Apenas da direita para a esquerda
       confirmDismiss: (direction) async {
         return await _showDeleteDialog(context);
       },
@@ -49,9 +53,10 @@ class PaymentTile extends StatelessWidget {
           ),
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
-              flex: 1,
+              flex: 0,
               child: Text(
                 formattedDate,
                 style: GoogleFonts.roboto(
@@ -62,7 +67,7 @@ class PaymentTile extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 2,
+              flex: 0,
               child: Text(
                 'Dinheiro', // Simulando método de pagamento pois PaymentModel não tem
                 overflow: TextOverflow.ellipsis,
@@ -74,7 +79,7 @@ class PaymentTile extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: 1,
+              flex: 0,
               child: Text(
                 formattedValue,
                 style: GoogleFonts.roboto(

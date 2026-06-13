@@ -74,23 +74,29 @@ class _ClientDetailsPageState extends State<ClientDetailsPage> {
         else ...[
           // Cabeçalho da Tabela
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
             decoration: BoxDecoration(
               color: Theme.of(
                 context,
-              ).colorScheme.primary.withValues(alpha: 0.1),
+              ).colorScheme.primary.withValues(alpha: 0.2),
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(4),
+                top: Radius.circular(12),
+              ),
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.1),
+                ),
               ),
             ),
             child: Row(
               children: [
-                BuildHeaderCell('Qtd.', 1),
-                BuildHeaderCell('Unid.', 1),
-                BuildHeaderCell('Descrição', 2),
-                BuildHeaderCell('V. Unit.', 2),
-                BuildHeaderCell('Total', 2),
-                const SizedBox(width: 48), // Espaço para os botões de ação
+                BuildHeaderCell('Qtd.', flex: 0),
+                BuildHeaderCell('Unid.', flex: 1),
+                BuildHeaderCell('Descrição', flex: 1),
+                BuildHeaderCell('V. Unit.', flex: 1),
+                BuildHeaderCell('Total', flex: 1),
               ],
             ),
           ),

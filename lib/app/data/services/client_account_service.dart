@@ -26,18 +26,17 @@ class ClientAccountService {
     String clientId,
     String userId,
   ) async {
+    // Busca a conta ativa atual
     var account = await accountRepository.getByClientId(clientId);
+    
+    // Se não existir conta ativa, cria uma NOVA do zero
     if (account == null) {
       account = await accountRepository.saveForUser(
-        AccountModel(clientId: clientId, status: 'DEVENDO'),
+        AccountModel(clientId: clientId, status: 'LIMPA', active: true),
         userId,
       );
-    } else if (account.status != 'DEVENDO') {
-      account = await accountRepository.saveForUser(
-        AccountModel(id: account.id, clientId: clientId, status: 'DEVENDO'),
-        userId,
-      );
-    }
+    } 
+    
     return account;
   }
 
@@ -54,7 +53,7 @@ class ClientAccountService {
 
       loadedItems.add(
         PurchasedItemModel(
-          id: ia.id, // Agora capturamos o ID para delete/update
+          id: ia.id,
           quantity: ia.quantity,
           unit: item.measurementUnit,
           description: item.description,
@@ -151,6 +150,7 @@ class ClientAccountService {
         clientId: current.clientId,
         createdAt: current.createdAt,
         status: 'PAGA',
+        active: false,
       );
       await accountRepository.saveForUser(updated, userId);
     }
@@ -163,15 +163,12 @@ class ClientAccountService {
     double unitValue,
     String userId,
   ) async {
-    // Primeiro buscamos o registro atual para não perder item_id e account_id
     final results = await itemAccountRepository.remoteDataSource
         .fetchWithFilter(itemAccountRepository.tableName, 'id', id);
 
     if (results.isNotEmpty) {
       final current = ItemAccountModel.fromJson(results.first);
 
-      // Buscamos ou criamos o item com a nova descrição
-      // Mantemos a unidade do item original por enquanto, ou buscamos do item original
       final itemData = await itemRepository.remoteDataSource.fetchById(
         itemRepository.tableName,
         current.itemId,

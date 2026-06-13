@@ -1,10 +1,16 @@
 import 'package:espetosystem/app/UI/home/widgets/client_avatar.dart';
+import 'package:espetosystem/app/UI/home/widgets/status_tag.dart';
 import 'package:espetosystem/app/data/models/client_model.dart';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 class ClientCard extends StatelessWidget {
-  const ClientCard({super.key, required this.client, this.onTap, this.status = 'LIMPA'});
+  const ClientCard({
+    super.key,
+    required this.client,
+    this.onTap,
+    this.status = 'LIMPA',
+  });
 
   final ClientModel client;
   final VoidCallback? onTap;
@@ -13,9 +19,23 @@ class ClientCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final backgroundColor = status == 'DEVENDO'
-        ? theme.colorScheme.error.withValues(alpha: 0.4)
-        : theme.colorScheme.primary;
+
+    Color backgroundColor;
+    switch (status.toUpperCase()) {
+      case 'DEVENDO':
+        backgroundColor = theme.colorScheme.error.withValues(alpha: 0.18);
+        break;
+      case 'PAGO':
+      case 'PAGA':
+        backgroundColor = theme.colorScheme.tertiary.withValues(alpha: 0.18);
+        break;
+      case 'LIMPA':
+      case 'LIMPO':
+      default:
+        backgroundColor = theme.colorScheme.primary;
+        break;
+    }
+
     final borderColor = theme.colorScheme.onSecondary.withValues(alpha: 0.4);
 
     return Material(
@@ -109,32 +129,7 @@ class ClientCard extends StatelessWidget {
                   ),
                 ],
               ),
-              Positioned(
-                top: 0,
-                right: 0,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color:
-                        status == 'DEVENDO'
-                            ? theme.colorScheme.error
-                            : theme.colorScheme.tertiary.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    status,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color:
-                          status == 'DEVENDO'
-                              ? Colors.white
-                              : theme.colorScheme.onSurface,
-                      fontSize: 8,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ),
-              ),
+              Positioned(top: 0, right: 0, child: StatusTag(status: status)),
             ],
           ),
         ),

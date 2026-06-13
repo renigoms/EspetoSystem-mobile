@@ -7,12 +7,16 @@ import 'package:espetosystem/app/data/models/payment_model.dart';
 import 'package:espetosystem/app/data/models/purchased_item_model.dart';
 import 'package:espetosystem/app/data/repositories/account_repository.dart';
 import 'package:espetosystem/app/data/repositories/client_repository.dart';
+import 'package:espetosystem/app/data/repositories/item_account_repository.dart';
+import 'package:espetosystem/app/data/repositories/payment_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class HomeViewModel extends ChangeNotifier {
   final ClientRepository? _clientRepository;
   final AccountRepository? _accountRepository;
+  final ItemAccountRepository? _itemAccountRepository;
+  final PaymentRepository? _paymentRepository;
   final SupabaseClient _supabaseClient;
   StreamSubscription<AuthState>? _authStateSubscription;
   int _loadGeneration = 0;
@@ -23,10 +27,13 @@ class HomeViewModel extends ChangeNotifier {
   HomeViewModel({
     AccountRepository? accountRepository,
     ClientRepository? clientRepository,
-
+    ItemAccountRepository? itemAccountRepository,
+    PaymentRepository? paymentRepository,
     required SupabaseClient supabaseClient,
   }) : _accountRepository = accountRepository,
        _clientRepository = clientRepository,
+       _itemAccountRepository = itemAccountRepository,
+       _paymentRepository = paymentRepository,
        _supabaseClient = supabaseClient {
     Future.microtask(loadClients);
 
@@ -74,6 +81,7 @@ class HomeViewModel extends ChangeNotifier {
 
   final List<ClientModel> _clients = <ClientModel>[];
   final Map<String, String> _accountStatuses = <String, String>{};
+  final Map<String, DateTime?> _lastPaymentDates = <String, DateTime?>{};
   final Map<String, List<PurchasedItemModel>> _clientItems =
       <String, List<PurchasedItemModel>>{};
   final Map<String, List<PaymentModel>> _clientPayments =
@@ -105,7 +113,52 @@ class HomeViewModel extends ChangeNotifier {
           if (client.id != null) {
             final account = await _accountRepository.getByClientId(client.id!);
             if (account != null) {
-              _accountStatuses[client.id!] = account.status;
+              String status = 'LIMPA';
+
+              // Lógica de Cálculo de Status
+              if (_itemAccountRepository != null && _paymentRepository != null) {
+                final items = await _itemAccountRepository.getByAccountId(account.id!);
+                final payments = await _paymentRepository.remoteDataSource.fetchWithFilter(
+                  _paymentRepository.tableName,
+                  'account_id',
+                  account.id!,
+                );
+
+                double totalDue = 0;
+                for (var item in items) {
+                  totalDue += item.quantity * item.unitValue;
+                }
+
+                double totalPaid = 0;
+                DateTime? lastPayment;
+
+                for (var p in payments) {
+                  final pValue = (p['value'] ?? 0).toDouble();
+                  totalPaid += pValue;
+
+                  final pDateStr = p['date'] ?? p['payment_date'];
+                  if (pDateStr != null) {
+                    final pDate = DateTime.parse(pDateStr);
+                    if (lastPayment == null || pDate.isAfter(lastPayment)) {
+                      lastPayment = pDate;
+                    }
+                  }
+                }
+
+                if (totalDue == 0) {
+                  status = 'LIMPA';
+                } else if (totalPaid >= totalDue) {
+                  status = 'PAGA';
+                } else {
+                  status = 'DEVENDO';
+                }
+
+                _accountStatuses[client.id!] = status;
+                _lastPaymentDates[client.id!] = lastPayment;
+              } else {
+                status = account.status;
+                _accountStatuses[client.id!] = status;
+              }
             }
           }
         }
@@ -144,13 +197,36 @@ class HomeViewModel extends ChangeNotifier {
               (client.address?.neighborhood.toLowerCase().contains(query) ??
                   false);
 
-          // Filtering by status is now disabled or should be implemented via Account
-          const matchesFilter = true;
+          if (!matchesSearch) return false;
 
-          return matchesSearch && matchesFilter;
+          // 0: Todos, 1: Devendo, 2: Pago, 3: Limpo, 4: Atrasadas
+          final status = (_accountStatuses[client.id] ?? 'LIMPA').toUpperCase();
+          switch (_selectedFilterIndex) {
+            case 1: // Devendo
+              return status == 'DEVENDO';
+            case 2: // Pago
+              return status == 'PAGO' || status == 'PAGA';
+            case 3: // Limpo
+              return status == 'LIMPA' || status == 'LIMPO';
+            case 4: // Atrasadas
+              return status == 'DEVENDO';
+            case 0: // Todos
+            default:
+              return true;
+          }
         }).toList();
 
     filtered.sort((a, b) {
+      if (_selectedFilterIndex == 4) {
+        // Ordenação por data de pagamento (mais antiga primeiro)
+        // Se nunca pagou, consideramos uma data muito antiga para ficar no topo
+        final dateA = _lastPaymentDates[a.id] ?? DateTime(1900);
+        final dateB = _lastPaymentDates[b.id] ?? DateTime(1900);
+        
+        final comparison = dateA.compareTo(dateB);
+        return _ascendingOrder ? comparison : -comparison;
+      }
+
       final comparison = a.name.toLowerCase().compareTo(b.name.toLowerCase());
       return _ascendingOrder ? comparison : -comparison;
     });

@@ -22,10 +22,10 @@ class AccountRepository extends BaseRepository<AccountModel> {
       clientId,
     );
     
-    // Filtramos apenas as que não estão pagas e ordenamos pela data mais recente
+    // Filtramos apenas as contas ativas e ordenamos pela data mais recente
     final activeAccounts = results
         .map((json) => fromJson(json))
-        .where((account) => account.status != 'PAGA')
+        .where((account) => account.active)
         .toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 

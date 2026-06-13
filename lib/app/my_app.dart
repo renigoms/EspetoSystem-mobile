@@ -48,6 +48,8 @@ class MyApp extends StatelessWidget {
           create: (_) => HomeViewModel(
             accountRepository: accountRepository,
             clientRepository: clientRepository,
+            itemAccountRepository: itemAccountRepository,
+            paymentRepository: paymentRepository,
             supabaseClient: authRepository.supabaseClient,
           ),
         ),

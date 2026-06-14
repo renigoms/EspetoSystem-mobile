@@ -45,7 +45,7 @@ Future<String> getStatusIfNeeded(
 ) async {
   if (accountRepository == null || userId == null) return '';
 
-  final account = await accountRepository.getByClientId(clientId);
+  final account = await accountRepository.getByClientId(clientId, userId);
 
   if (account != null) {
     final newStatus = debt > 0 ? 'DEVENDO' : 'LIMPA';

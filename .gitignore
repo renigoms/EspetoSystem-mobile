@@ -45,3 +45,4 @@ app.*.map.json
 /android/app/release
 *.txt
 GEMINI.md
+OFFLINE_SYNC_SYSTEM.md

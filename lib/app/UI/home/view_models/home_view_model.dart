@@ -1,13 +1,16 @@
 import 'dart:async';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:espetosystem/app/core/components/view_model_components.dart';
 import 'package:espetosystem/app/data/models/account_model.dart';
 import 'package:espetosystem/app/data/models/client_model.dart';
+import 'package:espetosystem/app/data/models/item_account_model.dart';
 import 'package:espetosystem/app/data/models/payment_model.dart';
 import 'package:espetosystem/app/data/models/purchased_item_model.dart';
 import 'package:espetosystem/app/data/repositories/account_repository.dart';
 import 'package:espetosystem/app/data/repositories/client_repository.dart';
 import 'package:espetosystem/app/data/repositories/item_account_repository.dart';
+import 'package:espetosystem/app/data/repositories/item_repository.dart';
 import 'package:espetosystem/app/data/repositories/payment_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -17,8 +20,10 @@ class HomeViewModel extends ChangeNotifier {
   final AccountRepository? _accountRepository;
   final ItemAccountRepository? _itemAccountRepository;
   final PaymentRepository? _paymentRepository;
+  final ItemRepository? _itemRepository;
   final SupabaseClient _supabaseClient;
   StreamSubscription<AuthState>? _authStateSubscription;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
   int _loadGeneration = 0;
   final List<ClientModel> _pendingClients = <ClientModel>[];
 
@@ -29,11 +34,13 @@ class HomeViewModel extends ChangeNotifier {
     ClientRepository? clientRepository,
     ItemAccountRepository? itemAccountRepository,
     PaymentRepository? paymentRepository,
+    ItemRepository? itemRepository,
     required SupabaseClient supabaseClient,
   }) : _accountRepository = accountRepository,
        _clientRepository = clientRepository,
        _itemAccountRepository = itemAccountRepository,
        _paymentRepository = paymentRepository,
+       _itemRepository = itemRepository,
        _supabaseClient = supabaseClient {
     Future.microtask(loadClients);
 
@@ -58,6 +65,53 @@ class HomeViewModel extends ChangeNotifier {
       await _flushPendingClients(userId);
       await loadClients();
     });
+
+    // Listener de conectividade para sincronização automática
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((results) async {
+      final isOnline = !results.contains(ConnectivityResult.none);
+      if (isOnline) {
+        final userId = currentUserId(_supabaseClient);
+        if (userId != null) {
+          debugPrint('Back online! Starting full synchronization...');
+          await syncAll(userId);
+          await loadClients();
+        }
+      }
+    });
+  }
+
+  Future<void> syncAll(String userId) async {
+    await _clientRepository?.syncWithRemote(userId);
+    await _accountRepository?.syncWithRemote(userId);
+    
+    // Sync items first to get real IDs
+    final itemMappings = await _itemRepository?.syncWithRemote(userId) ?? {};
+    
+    if (itemMappings.isNotEmpty && _itemAccountRepository != null) {
+      // Update pending itemAccounts with real item IDs
+      final syncQueueKey = 'sync_queue_${_itemAccountRepository.tableName}_$userId';
+      final queue = _itemAccountRepository.localDataSource.get(syncQueueKey) as List? ?? [];
+      if (queue.isNotEmpty) {
+        final List<Map<String, dynamic>> updatedQueue = [];
+        bool changed = false;
+        for (var item in queue) {
+          final data = Map<String, dynamic>.from(item);
+          final oldItemId = data['item_id']?.toString();
+          if (oldItemId != null && itemMappings.containsKey(oldItemId)) {
+            data['item_id'] = itemMappings[oldItemId];
+            changed = true;
+          }
+          updatedQueue.add(data);
+        }
+        if (changed) {
+          await _itemAccountRepository.localDataSource.save(syncQueueKey, updatedQueue);
+        }
+      }
+    }
+
+    await _itemAccountRepository?.syncWithRemote(userId);
+    await _paymentRepository?.syncWithRemote(userId);
+    debugPrint('Synchronization finished.');
   }
 
   String? get photoPath => _photoPath;
@@ -102,71 +156,99 @@ class HomeViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final result = await _clientRepository.getClients(userId);
+      // 1. Busca Clientes (já lida com cache no repositório)
+      final clientsResult = await _clientRepository.getClients(userId);
       if (generation != _loadGeneration) return;
 
       _clients.clear();
-      _clients.addAll(result);
+      _clients.addAll(clientsResult);
 
-      if (_accountRepository != null) {
-        for (final client in _clients) {
-          if (client.id != null) {
-            final account = await _accountRepository.getByClientId(client.id!);
-            if (account != null) {
-              String status = 'LIMPA';
+      if (_clients.isEmpty) {
+        _isLoading = false;
+        notifyListeners();
+        return;
+      }
 
-              // Lógica de Cálculo de Status
-              if (_itemAccountRepository != null && _paymentRepository != null) {
-                final items = await _itemAccountRepository.getByAccountId(account.id!);
-                final payments = await _paymentRepository.remoteDataSource.fetchWithFilter(
-                  _paymentRepository.tableName,
-                  'account_id',
-                  account.id!,
-                );
+      // 2. Busca de dados em lote (Bulk fetch) para performance e offline
+      final clientIds = _clients.map((c) => c.id!).where((id) => id.isNotEmpty).toList();
+      
+      if (_accountRepository != null && clientIds.isNotEmpty) {
+        // Busca todas as contas dos clientes de uma vez
+        final allAccounts = await _accountRepository.getAccountsByClientIds(clientIds, userId);
+        final accountIds = allAccounts.map((a) => a.id!).where((id) => id.isNotEmpty).toList();
 
-                double totalDue = 0;
-                for (var item in items) {
-                  totalDue += item.quantity * item.unitValue;
-                }
+        if (accountIds.isNotEmpty && _itemAccountRepository != null && _paymentRepository != null) {
+          // Busca todos os itens e pagamentos de todas as contas de uma vez
+          final allItems = await _itemAccountRepository.getItemsByAccountIds(accountIds, userId);
+          final allPayments = await _paymentRepository.getPaymentsByAccountIds(accountIds, userId);
 
-                double totalPaid = 0;
-                DateTime? lastPayment;
+          // Adiciona itens e pagamentos pendentes na fila de sincronização para o cálculo de status
+          final pendingItemsQueue = _itemAccountRepository.localDataSource.get('sync_queue_${_itemAccountRepository.tableName}_$userId') as List? ?? [];
+          final pendingPaymentsQueue = _paymentRepository.localDataSource.get('sync_queue_${_paymentRepository.tableName}_$userId') as List? ?? [];
 
-                for (var p in payments) {
-                  final pValue = (p['value'] ?? 0).toDouble();
-                  totalPaid += pValue;
+          final List<ItemAccountModel> pendingItems = pendingItemsQueue
+              .map((e) => _itemAccountRepository.fromJson(Map<String, dynamic>.from(e)))
+              .toList();
+          final List<PaymentModel> pendingPayments = pendingPaymentsQueue
+              .map((e) => _paymentRepository.fromJson(Map<String, dynamic>.from(e)))
+              .toList();
 
-                  final pDateStr = p['date'] ?? p['payment_date'];
-                  if (pDateStr != null) {
-                    final pDate = DateTime.parse(pDateStr);
-                    if (lastPayment == null || pDate.isAfter(lastPayment)) {
-                      lastPayment = pDate;
-                    }
-                  }
-                }
+          // 3. Processamento em memória (O(N) em vez de N chamadas ao banco)
+          for (final client in _clients) {
+            final clientAccount = allAccounts.firstWhere(
+              (a) => a.clientId == client.id, 
+              orElse: () => AccountModel(clientId: client.id!, status: 'LIMPA'),
+            );
 
-                if (totalDue == 0) {
-                  status = 'LIMPA';
-                } else if (totalPaid >= totalDue) {
-                  status = 'PAGA';
-                } else {
-                  status = 'DEVENDO';
-                }
+            if (clientAccount.id != null) {
+              final items = allItems.where((it) => it.accountId == clientAccount.id).toList();
+              final pItems = pendingItems.where((it) => it.accountId == clientAccount.id).toList();
+              
+              final payments = allPayments.where((p) => p.accountId == clientAccount.id).toList();
+              final pPayments = pendingPayments.where((p) => p.accountId == clientAccount.id).toList();
 
-                _accountStatuses[client.id!] = status;
-                _lastPaymentDates[client.id!] = lastPayment;
-              } else {
-                status = account.status;
-                _accountStatuses[client.id!] = status;
+              double totalDue = 0;
+              for (var item in [...items, ...pItems]) {
+                totalDue += item.quantity * item.unitValue;
               }
+
+              double totalPaid = 0;
+              DateTime? lastPayment;
+              for (var p in [...payments, ...pPayments]) {
+                totalPaid += p.value;
+                if (lastPayment == null || p.date.isAfter(lastPayment)) {
+                  lastPayment = p.date;
+                }
+              }
+
+              String status = 'LIMPA';
+              if (totalDue == 0) {
+                status = 'LIMPA';
+              } else if (totalPaid >= totalDue) {
+                status = 'PAGA';
+              } else {
+                status = 'DEVENDO';
+              }
+
+              _accountStatuses[client.id!] = status;
+              _lastPaymentDates[client.id!] = lastPayment;
+              _clientItems[client.id!] = items.map((e) => PurchasedItemModel(
+                id: e.id ?? '',
+                quantity: e.quantity,
+                unit: 'un', 
+                description: 'Item de consumo',
+                value: e.unitValue.toString(),
+              )).toList();
+              _clientPayments[client.id!] = payments;
+            } else {
+              _accountStatuses[client.id!] = 'LIMPA';
             }
           }
         }
       }
     } catch (e) {
       if (generation != _loadGeneration) return;
-
-      debugPrint('Error loading clients: $e');
+      debugPrint('Error loading clients and statuses: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -350,6 +432,7 @@ class HomeViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _authStateSubscription?.cancel();
+    _connectivitySubscription?.cancel();
     super.dispose();
   }
 }

@@ -18,17 +18,19 @@ class ClientAccountViewModel extends BaseViewModel {
 
   Future<void> loadItemsForClient(String clientId, {bool force = false}) async {
     if (!force && clientItems.containsKey(clientId) && clientItems[clientId]!.isNotEmpty) return;
+    final userId = currentUserId(_supabaseClient);
+    if (userId == null) return;
 
     try {
-      final account = await _service.accountRepository.getByClientId(clientId);
+      final account = await _service.accountRepository.getByClientId(clientId, userId);
       if (account?.id == null) {
         clientItems[clientId] = [];
         notifyListeners();
         return;
       }
 
-      clientItems[clientId] = await _service.loadItems(account!.id!);
-      clientPayments[clientId] = await _service.loadPayments(account.id!);
+      clientItems[clientId] = await _service.loadItems(account!.id!, userId);
+      clientPayments[clientId] = await _service.loadPayments(account.id!, userId);
       
       await _updateStatus(clientId);
       notifyListeners();
@@ -42,7 +44,7 @@ class ClientAccountViewModel extends BaseViewModel {
     if (userId == null) return;
 
     try {
-      final account = await _service.accountRepository.getByClientId(clientId);
+      final account = await _service.accountRepository.getByClientId(clientId, userId);
       if (account?.id == null) return;
 
       final double valor = paymentData['valor'] as double;
@@ -93,7 +95,7 @@ class ClientAccountViewModel extends BaseViewModel {
       }
 
       clientItems[clientId] = [...(clientItems[clientId] ?? []), ...newPurchasedItems];
-      accountStatuses[clientId] = 'DEVENDO';
+      await _updateStatus(clientId);
       notifyListeners();
     } catch (e) {
       debugPrint('Error adding items: $e');
@@ -147,7 +149,7 @@ class ClientAccountViewModel extends BaseViewModel {
     if (userId == null) return;
 
     try {
-      final account = await _service.accountRepository.getByClientId(clientId);
+      final account = await _service.accountRepository.getByClientId(clientId, userId);
       if (account?.id != null) {
         await _service.clearAccount(account!.id!, userId);
         
@@ -179,9 +181,9 @@ class ClientAccountViewModel extends BaseViewModel {
       
       // Recarrega os itens para garantir que a UI reflita os valores formatados corretamente
       // Ou podemos atualizar localmente se preferir performance
-      final account = await _service.accountRepository.getByClientId(clientId);
+      final account = await _service.accountRepository.getByClientId(clientId, userId);
       if (account?.id != null) {
-        clientItems[clientId] = await _service.loadItems(account!.id!);
+        clientItems[clientId] = await _service.loadItems(account!.id!, userId);
       }
       
       await _updateStatus(clientId);

@@ -53,6 +53,7 @@ class MyApp extends StatelessWidget {
             clientRepository: clientRepository,
             itemAccountRepository: itemAccountRepository,
             paymentRepository: paymentRepository,
+            itemRepository: itemRepository,
             supabaseClient: authRepository.supabaseClient,
           ),
         ),

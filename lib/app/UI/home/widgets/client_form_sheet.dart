@@ -164,8 +164,6 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                       name: "Descrição",
                       controller: _descriptionController,
                       theme: theme,
-                      validate:
-                          (value) => _validate('Informe a descricao', value),
                       labelStyle: theme.textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -189,7 +187,7 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                           ],
                           validate: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Informe o CPF';
+                              return null;
                             }
                             if (!validateCPF(value)) {
                               return 'CPF inválido';
@@ -269,11 +267,6 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                                   labelStyle: theme.textTheme.labelSmall
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                   theme: theme,
-                                  validate:
-                                      (value) => _validate(
-                                        "Informe o número residencial",
-                                        value,
-                                      ),
                                 ),
                               ),
                             ],

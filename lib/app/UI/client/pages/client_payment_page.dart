@@ -1,4 +1,5 @@
 import 'package:espetosystem/app/UI/client/view_model/client_account_view_model.dart';
+import 'package:espetosystem/app/core/widgets/custom_snack_bar.dart';
 import 'package:espetosystem/app/UI/client/widgets/add_payment_dialog.dart';
 import 'package:espetosystem/app/UI/client/widgets/build_header_cell.dart';
 import 'package:espetosystem/app/UI/client/widgets/client_detail_scope.dart';
@@ -48,15 +49,23 @@ class _ClientPaymentsPageState extends State<ClientPaymentsPage> {
         const SizedBox(height: 28),
         PaymentsTitle(
           onAdd: () async {
+            final totalDebt = viewModel.getTotalDebtForClient(client.id ?? '');
             final result = await showDialog<Map<String, dynamic>>(
               context: context,
-              builder: (context) => const AddPaymentDialog(),
+              builder: (context) => AddPaymentDialog(totalDebt: totalDebt),
             );
 
             if (result != null && context.mounted) {
               final viewModel = context.read<ClientAccountViewModel>();
               if (client.id != null) {
                 await viewModel.addPaymentToClientAccount(client.id!, result);
+
+                if (context.mounted) {
+                  CustomSnackBar.showSuccess(
+                    context,
+                    'Pagamento adicionado com sucesso!',
+                  );
+                }
               }
             }
           },

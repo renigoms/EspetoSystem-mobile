@@ -28,26 +28,36 @@ class ClientAccountService {
   ) async {
     // Busca a conta ativa atual
     var account = await accountRepository.getByClientId(clientId, userId);
-    
+
     // Se não existir conta ativa, cria uma NOVA do zero
-    if (account == null) {
+    if (account == null || !account.active) {
       account = await accountRepository.saveForUser(
         AccountModel(clientId: clientId, status: 'LIMPA', active: true),
         userId,
       );
-    } 
-    
+    }
+
     return account;
   }
 
-  Future<List<PurchasedItemModel>> loadItems(String accountId, String userId) async {
-    final itemAccounts = await itemAccountRepository.getByAccountId(accountId, userId);
-    
+  Future<List<PurchasedItemModel>> loadItems(
+    String accountId,
+    String userId,
+  ) async {
+    final itemAccounts = await itemAccountRepository.getByAccountId(
+      accountId,
+      userId,
+    );
+
     // Busca itens pendentes na fila de sincronização
-    final syncQueueKey = 'sync_queue_${itemAccountRepository.tableName}_$userId';
-    final queue = itemAccountRepository.localDataSource.get(syncQueueKey) as List? ?? [];
+    final syncQueueKey =
+        'sync_queue_${itemAccountRepository.tableName}_$userId';
+    final queue =
+        itemAccountRepository.localDataSource.get(syncQueueKey) as List? ?? [];
     final List<ItemAccountModel> pendingIA = queue
-        .map((e) => itemAccountRepository.fromJson(Map<String, dynamic>.from(e)))
+        .map(
+          (e) => itemAccountRepository.fromJson(Map<String, dynamic>.from(e)),
+        )
         .where((ia) => ia.accountId == accountId)
         .toList();
 
@@ -64,35 +74,44 @@ class ClientAccountService {
     // Tenta carregar todos os itens para cache local primeiro para agilizar se estiver offline
     final userItemsCacheKey = 'cached_items_global_$userId';
     List<ItemModel> allItems = [];
-    
+
     if (await itemRepository.networkInfo.isConnected) {
       try {
         allItems = await itemRepository.getAllForUser(userId);
-        await itemRepository.localDataSource.save(userItemsCacheKey, allItems.map((e) => e.toJson()).toList());
+        await itemRepository.localDataSource.save(
+          userItemsCacheKey,
+          allItems.map((e) => e.toJson()).toList(),
+        );
       } catch (e) {
         debugPrint('Error fetching all items for offline cache: $e');
       }
     }
 
     if (allItems.isEmpty) {
-      final cached = itemRepository.localDataSource.get(userItemsCacheKey) as List?;
+      final cached =
+          itemRepository.localDataSource.get(userItemsCacheKey) as List?;
       if (cached != null) {
-        allItems = cached.map((e) => ItemModel.fromJson(Map<String, dynamic>.from(e))).toList();
+        allItems =
+            cached
+                .map((e) => ItemModel.fromJson(Map<String, dynamic>.from(e)))
+                .toList();
       }
     }
 
     // Busca também produtos na fila de sincronização (novos produtos criados offline)
-    final productSyncQueueKey = 'sync_queue_${itemRepository.tableName}_$userId';
-    final productQueue = itemRepository.localDataSource.get(productSyncQueueKey) as List? ?? [];
+    final productSyncQueueKey =
+        'sync_queue_${itemRepository.tableName}_$userId';
+    final productQueue =
+        itemRepository.localDataSource.get(productSyncQueueKey) as List? ?? [];
     final List<ItemModel> pendingProducts = productQueue
         .map((e) => itemRepository.fromJson(Map<String, dynamic>.from(e)))
         .toList();
-    
+
     final combinedProducts = [...allItems, ...pendingProducts];
 
     for (final ia in allIA) {
       ItemModel? item;
-      
+
       // Busca no cache combinado (sincronizados + pendentes)
       try {
         item = combinedProducts.firstWhere((it) => it.id == ia.itemId);
@@ -118,7 +137,8 @@ class ClientAccountService {
             quantity: ia.quantity,
             unit: item.measurementUnit,
             description: item.description,
-            value: 'R\$ ${ia.unitValue.toStringAsFixed(2).replaceAll('.', ',')}',
+            value:
+                'R\$ ${ia.unitValue.toStringAsFixed(2).replaceAll('.', ',')}',
           ),
         );
       }
@@ -126,20 +146,31 @@ class ClientAccountService {
     return loadedItems;
   }
 
-  Future<List<PaymentModel>> loadPayments(String accountId, String userId) async {
-    final userCacheKey = 'cached_payments_all_$userId';
+  Future<List<PaymentModel>> loadPayments(
+    String accountId,
+    String userId,
+  ) async {
+    final userCacheKey = 'cached_payment_$userId';
     List<PaymentModel> syncedPayments = [];
-    
+
     if (await paymentRepository.networkInfo.isConnected) {
       try {
         final paymentsRaw = await paymentRepository.remoteDataSource
-            .fetchWithFilter(paymentRepository.tableName, 'account_id', accountId);
-        
-        syncedPayments = paymentsRaw.map((p) => PaymentModel.fromJson(p)).toList();
-        
+            .fetchWithFilter(
+              paymentRepository.tableName,
+              'account_id',
+              accountId,
+            );
+
+        syncedPayments =
+            paymentsRaw.map((p) => PaymentModel.fromJson(p)).toList();
+
         // Atualiza cache global de pagamentos
         for (final p in syncedPayments) {
-          await paymentRepository.upsertCachedUserModel(userCacheKey, p.toJson());
+          await paymentRepository.upsertCachedUserModel(
+            userCacheKey,
+            p.toJson(),
+          );
         }
       } catch (e) {
         debugPrint('Error loading payments: $e');
@@ -153,7 +184,8 @@ class ClientAccountService {
 
     // Busca pagamentos pendentes na fila
     final syncQueueKey = 'sync_queue_${paymentRepository.tableName}_$userId';
-    final queue = paymentRepository.localDataSource.get(syncQueueKey) as List? ?? [];
+    final queue =
+        paymentRepository.localDataSource.get(syncQueueKey) as List? ?? [];
     final List<PaymentModel> pendingPayments = queue
         .map((e) => paymentRepository.fromJson(Map<String, dynamic>.from(e)))
         .where((p) => p.accountId == accountId)
@@ -189,18 +221,36 @@ class ClientAccountService {
     String userId,
   ) async {
     ItemModel? item;
-    try {
-      final existingItems = await itemRepository.remoteDataSource
-          .fetchWithFilter(
-            itemRepository.tableName,
-            'description',
-            description,
-          );
-      if (existingItems.isNotEmpty) {
-        item = ItemModel.fromJson(existingItems.first);
+
+    // 1. Tenta buscar no cache local de produtos globais primeiro
+    final userItemsCacheKey = 'cached_items_global_$userId';
+    final cached = itemRepository.localDataSource.get(userItemsCacheKey) as List?;
+    if (cached != null) {
+      final cachedItems = cached
+          .map((e) => ItemModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+      try {
+        item = cachedItems.firstWhere(
+          (it) => it.description.trim().toLowerCase() == description.trim().toLowerCase(),
+        );
+      } catch (_) {}
+    }
+
+    // 2. Se não achou localmente E está conectado, busca online no Supabase
+    if (item == null && await itemRepository.networkInfo.isConnected) {
+      try {
+        final existingItems = await itemRepository.remoteDataSource
+            .fetchWithFilter(
+              itemRepository.tableName,
+              'description',
+              description,
+            );
+        if (existingItems.isNotEmpty) {
+          item = ItemModel.fromJson(existingItems.first);
+        }
+      } catch (e) {
+        debugPrint('Error searching for existing item online: $e');
       }
-    } catch (e) {
-      debugPrint('Error searching for existing item: $e');
     }
 
     item ??= await itemRepository.saveForUser(
@@ -237,19 +287,40 @@ class ClientAccountService {
   }
 
   Future<void> clearAccount(String accountId, String userId) async {
-    final results = await accountRepository.remoteDataSource.fetchWithFilter(
-      accountRepository.tableName,
-      'id',
-      accountId,
-    );
+    AccountModel? current;
 
-    if (results.isNotEmpty) {
-      final current = AccountModel.fromJson(results.first);
+    if (await accountRepository.networkInfo.isConnected) {
+      try {
+        final results = await accountRepository.remoteDataSource.fetchWithFilter(
+          accountRepository.tableName,
+          'id',
+          accountId,
+        );
+
+        if (results.isNotEmpty) {
+          current = AccountModel.fromJson(results.first);
+        }
+      } catch (e) {
+        debugPrint('Error fetching account from remote during clearAccount: $e');
+      }
+    }
+
+    if (current == null) {
+      final userCacheKey = 'cached_account_$userId';
+      final cached = await accountRepository.getCachedList(userCacheKey);
+      try {
+        current = cached.firstWhere((a) => a.id == accountId);
+      } catch (_) {
+        debugPrint('Account $accountId not found in local cache during clearAccount');
+      }
+    }
+
+    if (current != null) {
       final updated = AccountModel(
         id: accountId,
         clientId: current.clientId,
         createdAt: current.createdAt,
-        status: 'PAGA',
+        status: 'LIMPA',
         active: false,
       );
       await accountRepository.saveForUser(updated, userId);

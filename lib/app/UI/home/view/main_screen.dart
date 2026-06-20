@@ -1,3 +1,4 @@
+import 'package:espetosystem/app/core/widgets/custom_snack_bar.dart';
 import 'package:espetosystem/app/UI/home/components/modal_custom.dart';
 import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
 import 'package:espetosystem/app/UI/home/widgets/app_bar_custom.dart';
@@ -25,6 +26,10 @@ class MainScreen extends StatelessWidget {
 
     if (created != null) {
       await viewModel.addClient(created);
+
+      if (context.mounted) {
+        CustomSnackBar.showSuccess(context, 'Cliente adicionado com sucesso!');
+      }
     }
   }
 

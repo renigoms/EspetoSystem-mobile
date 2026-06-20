@@ -196,8 +196,8 @@ class HomeViewModel extends ChangeNotifier {
           // 3. Processamento em memória (O(N) em vez de N chamadas ao banco)
           for (final client in _clients) {
             final clientAccount = allAccounts.firstWhere(
-              (a) => a.clientId == client.id, 
-              orElse: () => AccountModel(clientId: client.id!, status: 'LIMPA'),
+              (a) => a.clientId == client.id && a.active, 
+              orElse: () => AccountModel(clientId: client.id!, status: 'LIMPA', active: true),
             );
 
             if (clientAccount.id != null) {
@@ -426,6 +426,11 @@ class HomeViewModel extends ChangeNotifier {
     );
 
     _accountStatuses[clientId] = 'DEVENDO';
+    notifyListeners();
+  }
+
+  void updateClientStatus(String clientId, String status) {
+    _accountStatuses[clientId] = status;
     notifyListeners();
   }
 

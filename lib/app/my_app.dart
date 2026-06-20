@@ -78,9 +78,15 @@ class MyApp extends StatelessWidget {
           create: (context) => ClientAccountViewModel(
             context.read<ClientAccountService>(),
             authRepository.supabaseClient,
+            homeViewModel: context.read<HomeViewModel>(),
           ),
           update: (context, service, previous) =>
-              previous ?? ClientAccountViewModel(service, authRepository.supabaseClient),
+              previous ??
+              ClientAccountViewModel(
+                service,
+                authRepository.supabaseClient,
+                homeViewModel: context.read<HomeViewModel>(),
+              ),
         ),
       ],
       child: Consumer2<ThemeViewModel, AuthViewModel>(

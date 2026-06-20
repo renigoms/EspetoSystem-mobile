@@ -46,3 +46,4 @@ app.*.map.json
 *.txt
 GEMINI.md
 OFFLINE_SYNC_SYSTEM.md
+OFFLINE_SYNC_OPTIMIZATION.md

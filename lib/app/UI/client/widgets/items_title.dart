@@ -1,4 +1,5 @@
 import 'package:espetosystem/app/UI/client/view_model/client_account_view_model.dart';
+import 'package:espetosystem/app/core/widgets/custom_snack_bar.dart';
 import 'package:espetosystem/app/UI/client/widgets/client_detail_scope.dart';
 import 'package:espetosystem/app/data/models/purchased_item_model.dart';
 import 'package:flutter/material.dart';
@@ -40,6 +41,13 @@ class ItemsTitle extends StatelessWidget {
               final client = ClientDetailsScope.clientOf(context);
               if (client.id != null) {
                 await viewModel.addItemsToClientAccount(client.id!, result);
+
+                if (context.mounted) {
+                  CustomSnackBar.showSuccess(
+                    context,
+                    'Item(ns) adicionado(s) com sucesso!',
+                  );
+                }
               }
             }
           },

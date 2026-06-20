@@ -17,7 +17,7 @@ class PaymentRepository extends BaseRepository<PaymentModel> {
   Map<String, dynamic> toJson(PaymentModel model) => model.toJson();
 
   Future<List<PaymentModel>> getPaymentsByAccountIds(List<String> accountIds, String userId) async {
-    final userCacheKey = 'cached_payments_all_$userId';
+    final userCacheKey = 'cached_payment_$userId';
 
     if (await networkInfo.isConnected) {
       try {

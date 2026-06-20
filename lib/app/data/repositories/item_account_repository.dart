@@ -18,7 +18,7 @@ class ItemAccountRepository extends BaseRepository<ItemAccountModel> {
   Map<String, dynamic> toJson(ItemAccountModel model) => model.toJson();
 
   Future<List<ItemAccountModel>> getByAccountId(String accountId, String userId) async {
-    final userCacheKey = 'cached_items_all_$userId';
+    final userCacheKey = 'cached_item_account_$userId';
     if (await networkInfo.isConnected) {
       try {
         final results = await remoteDataSource.fetchWithFilter(
@@ -45,7 +45,7 @@ class ItemAccountRepository extends BaseRepository<ItemAccountModel> {
   }
 
   Future<List<ItemAccountModel>> getItemsByAccountIds(List<String> accountIds, String userId) async {
-    final userCacheKey = 'cached_items_all_$userId';
+    final userCacheKey = 'cached_item_account_$userId';
 
     if (await networkInfo.isConnected) {
       try {

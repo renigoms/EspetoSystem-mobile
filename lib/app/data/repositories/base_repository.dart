@@ -48,6 +48,11 @@ abstract class BaseRepository<T> {
     final syncQueueKey = 'sync_queue_${tableName}_$userId';
     final Map<String, dynamic> data = toJson(model);
 
+    // Se o modelo não tem ID, gera um temporário logo no início para consistência local-first
+    if (data['id'] == null) {
+      data['id'] = 'temp_${DateTime.now().millisecondsSinceEpoch}_${data.hashCode}';
+    }
+
     if (!data.containsKey('user_id') &&
         !tableName.contains('_') &&
         tableName != 'payment' &&

@@ -18,7 +18,7 @@ class AccountRepository extends BaseRepository<AccountModel> {
   Map<String, dynamic> toJson(AccountModel model) => model.toJson();
 
   Future<AccountModel?> getByClientId(String clientId, String userId) async {
-    final userCacheKey = 'cached_accounts_all_$userId';
+    final userCacheKey = 'cached_account_$userId';
 
     if (await networkInfo.isConnected) {
       try {
@@ -28,9 +28,18 @@ class AccountRepository extends BaseRepository<AccountModel> {
           clientId,
         );
         if (results.isNotEmpty) {
-          final account = fromJson(results.first);
-          await upsertCachedUserModel(userCacheKey, toJson(account));
-          return account;
+          final accounts = results.map((json) => fromJson(json)).toList();
+          AccountModel? activeAccount;
+          for (final a in accounts) {
+            if (a.active) {
+              activeAccount = a;
+              break;
+            }
+          }
+          if (activeAccount != null) {
+            await upsertCachedUserModel(userCacheKey, toJson(activeAccount));
+            return activeAccount;
+          }
         }
       } catch (e) {
         debugPrint('Error fetching account for client $clientId: $e');
@@ -46,7 +55,7 @@ class AccountRepository extends BaseRepository<AccountModel> {
   }
 
   Future<List<AccountModel>> getAccountsByClientIds(List<String> clientIds, String userId) async {
-    final userCacheKey = 'cached_accounts_all_$userId';
+    final userCacheKey = 'cached_account_$userId';
 
     if (await networkInfo.isConnected) {
       try {

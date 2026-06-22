@@ -29,6 +29,9 @@ class HomeViewModel extends ChangeNotifier {
 
   String? _photoPath;
 
+  bool _hasSeenOnboarding = true;
+  bool get hasSeenOnboarding => _hasSeenOnboarding;
+
   HomeViewModel({
     AccountRepository? accountRepository,
     ClientRepository? clientRepository,
@@ -155,6 +158,9 @@ class HomeViewModel extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
+    final onboardingKey = 'has_seen_onboarding_$userId';
+    _hasSeenOnboarding = _clientRepository.localDataSource.get(onboardingKey) as bool? ?? false;
+
     try {
       // 1. Busca Clientes (já lida com cache no repositório)
       final clientsResult = await _clientRepository.getClients(userId);
@@ -255,6 +261,16 @@ class HomeViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> completeOnboarding() async {
+    final userId = currentUserId(_supabaseClient);
+    if (_clientRepository == null || userId == null) return;
+
+    final onboardingKey = 'has_seen_onboarding_$userId';
+    await _clientRepository.localDataSource.save(onboardingKey, true);
+    _hasSeenOnboarding = true;
+    notifyListeners();
+  }
+
   int _selectedFilterIndex = 0;
   bool _ascendingOrder = true;
   String _searchQuery = '';
@@ -291,7 +307,7 @@ class HomeViewModel extends ChangeNotifier {
             case 3: // Limpo
               return status == 'LIMPA' || status == 'LIMPO';
             case 4: // Atrasadas
-              return status == 'DEVENDO';
+              return status == 'DEVENDO' && _lastPaymentDates[client.id] != null;
             case 0: // Todos
             default:
               return true;

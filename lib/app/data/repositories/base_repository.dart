@@ -56,7 +56,6 @@ abstract class BaseRepository<T> {
     if (!data.containsKey('user_id') &&
         !tableName.contains('_') &&
         tableName != 'payment' &&
-        tableName != 'item' &&
         tableName != 'address') {
       data['user_id'] = userId;
     }
@@ -66,12 +65,22 @@ abstract class BaseRepository<T> {
 
     if (await networkInfo.isConnected) {
       try {
-        final savedData = await remoteDataSource.upsert(tableName, data);
-        final savedMap = savedData is Map<String, dynamic> ? savedData : data;
+        final Map<String, dynamic> remoteData = Map<String, dynamic>.from(data);
+        final String? tempId = remoteData['id']?.toString().startsWith('temp_') == true ? remoteData['id'] : null;
+        if (tempId != null) {
+          remoteData.remove('id');
+        }
+
+        final savedData = await remoteDataSource.upsert(tableName, remoteData);
+        final savedMap = savedData is Map<String, dynamic> ? savedData : remoteData;
+        
+        if (tempId != null) {
+          await removeFromCache(userCacheKey, tempId);
+        }
         await upsertCachedUserModel(userCacheKey, savedMap);
         return fromJson(savedMap);
       } catch (e) {
-        debugPrint('Error saving $tableName to remote. Adding to sync queue.');
+        debugPrint('Error saving $tableName to remote. Adding to sync queue: $e');
         await _addToSyncQueue(syncQueueKey, data);
         return fromJson(data);
       }

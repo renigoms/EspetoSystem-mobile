@@ -5,6 +5,7 @@ import 'package:espetosystem/app/data/models/payment_model.dart';
 import 'package:espetosystem/app/data/models/purchased_item_model.dart';
 import 'package:espetosystem/app/data/models/item_model.dart';
 import 'package:espetosystem/app/data/models/account_model.dart';
+import 'package:espetosystem/app/data/models/item_account_model.dart';
 import 'package:espetosystem/app/data/services/client_account_service.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -13,6 +14,12 @@ class ClientAccountViewModel extends BaseViewModel {
   final ClientAccountService _service;
   final SupabaseClient _supabaseClient;
   final HomeViewModel? _homeViewModel;
+
+  bool _hasSeenClientOnboarding = true;
+  bool get hasSeenClientOnboarding => _hasSeenClientOnboarding;
+
+  bool _hasSeenPaymentsOnboarding = true;
+  bool get hasSeenPaymentsOnboarding => _hasSeenPaymentsOnboarding;
 
   ClientAccountViewModel(
     this._service,
@@ -31,9 +38,19 @@ class ClientAccountViewModel extends BaseViewModel {
   Future<void> loadItemsForClient(String clientId, {bool force = false}) async {
     if (!force &&
         clientItems.containsKey(clientId) &&
-        clientItems[clientId]!.isNotEmpty) return;
+        clientItems[clientId]!.isNotEmpty) {
+      return;
+    }
     final userId = currentUserId(_supabaseClient);
-    if (userId == null) return;
+    if (userId == null) {
+      return;
+    }
+
+    final clientOnboardingKey = 'has_seen_client_onboarding_$userId';
+    _hasSeenClientOnboarding = _service.itemAccountRepository.localDataSource.get(clientOnboardingKey) as bool? ?? false;
+
+    final paymentsOnboardingKey = 'has_seen_client_payments_onboarding_$userId';
+    _hasSeenPaymentsOnboarding = _service.itemAccountRepository.localDataSource.get(paymentsOnboardingKey) as bool? ?? false;
 
     // 1. Carregamento Ultra Rápido do Cache Offline (Sem travar a tela)
     try {
@@ -48,19 +65,19 @@ class ClientAccountViewModel extends BaseViewModel {
         final localPayments = await _service.paymentRepository.getCachedList('cached_payment_$userId');
 
         clientItems[clientId] = localItems.where((it) => it.accountId == localAccount.id).map((ia) {
-          final userItemsCacheKey = 'cached_items_global_$userId';
+          final userItemsCacheKey = '${_service.itemRepository.cacheKey}_$userId';
           final cachedProducts = _service.itemRepository.localDataSource.get(userItemsCacheKey) as List? ?? [];
           final product = cachedProducts
               .map((e) => ItemModel.fromJson(Map<String, dynamic>.from(e)))
               .firstWhere(
                 (it) => it.id == ia.itemId,
-                orElse: () => ItemModel(description: 'Item de consumo', measurementUnit: 'un'),
+                orElse: () => ItemModel(description: 'Item de consumo'),
               );
 
           return PurchasedItemModel(
             id: ia.id,
             quantity: ia.quantity,
-            unit: product.measurementUnit,
+            unit: ia.measurementUnit,
             description: product.description,
             value: 'R\$ ${ia.unitValue.toStringAsFixed(2).replaceAll('.', ',')}',
           );
@@ -175,20 +192,22 @@ class ClientAccountViewModel extends BaseViewModel {
             ) ??
             0;
 
-        final item = await _service.getOrCreateItem(description, unit, userId);
-
+        final item = await _service.getOrCreateItem(description, userId);
+        ItemAccountModel? linkedItem;
         if (item.id != null) {
-          await _service.linkItemToAccount(
+          linkedItem = await _service.linkItemToAccount(
             item.id!,
             account!.id!,
             quantity,
             unitValue,
+            unit,
             userId,
           );
         }
 
         newPurchasedItems.add(
           PurchasedItemModel(
+            id: linkedItem?.id,
             quantity: quantity,
             unit: unit,
             description: description,
@@ -283,9 +302,15 @@ class ClientAccountViewModel extends BaseViewModel {
     String description,
     int quantity,
     double unitValue,
+    String unit,
   ) async {
     final userId = currentUserId(_supabaseClient);
-    if (userId == null) return;
+    if (userId == null) {
+      debugPrint('DEBUG [updateItem]: Falhou porque userId está nulo.');
+      return;
+    }
+
+    debugPrint('DEBUG [updateItem]: Chamado com clientId: $clientId, itemAccountId: $itemAccountId, description: $description, quantity: $quantity, unitValue: $unitValue, unit: $unit');
 
     try {
       await _service.updateItemAccount(
@@ -293,22 +318,28 @@ class ClientAccountViewModel extends BaseViewModel {
         description,
         quantity,
         unitValue,
+        unit,
         userId,
       );
+      debugPrint('DEBUG [updateItem]: _service.updateItemAccount finalizou com sucesso.');
 
       // Recarrega os itens para garantir que a UI reflita os valores formatados corretamente
       final account = await _service.accountRepository.getByClientId(
         clientId,
         userId,
       );
+      debugPrint('DEBUG [updateItem]: Conta carregada: ${account?.id}');
       if (account?.id != null) {
         clientItems[clientId] = await _service.loadItems(account!.id!, userId);
+        debugPrint('DEBUG [updateItem]: Itens recarregados na UI: ${clientItems[clientId]?.length} itens');
       }
 
       await _updateStatus(clientId);
       notifyListeners();
-    } catch (e) {
-      debugPrint('Error updating item: $e');
+      debugPrint('DEBUG [updateItem]: Finalizado com sucesso e notificado.');
+    } catch (e, stack) {
+      debugPrint('DEBUG [updateItem]: Ocorreu um erro ao atualizar item: $e');
+      debugPrint('DEBUG [updateItem]: StackTrace: $stack');
     }
   }
 
@@ -337,5 +368,29 @@ class ClientAccountViewModel extends BaseViewModel {
       accountStatuses[clientId] = targetAccount.status;
       _homeViewModel?.updateClientStatus(clientId, targetAccount.status);
     }
+  }
+
+  Future<void> completeClientOnboarding() async {
+    final userId = currentUserId(_supabaseClient);
+    if (userId == null) {
+      return;
+    }
+
+    final onboardingKey = 'has_seen_client_onboarding_$userId';
+    await _service.itemAccountRepository.localDataSource.save(onboardingKey, true);
+    _hasSeenClientOnboarding = true;
+    notifyListeners();
+  }
+
+  Future<void> completeClientPaymentsOnboarding() async {
+    final userId = currentUserId(_supabaseClient);
+    if (userId == null) {
+      return;
+    }
+
+    final onboardingKey = 'has_seen_client_payments_onboarding_$userId';
+    await _service.itemAccountRepository.localDataSource.save(onboardingKey, true);
+    _hasSeenPaymentsOnboarding = true;
+    notifyListeners();
   }
 }

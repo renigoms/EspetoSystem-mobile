@@ -137,6 +137,9 @@ class PurchasedItemTile extends StatelessWidget {
 
   Future<bool> _showDeleteDialog(BuildContext context) async {
     final theme = Theme.of(context);
+    final clientId = ClientDetailsScope.clientOf(context).id;
+    final clientAccountViewModel = context.read<ClientAccountViewModel>();
+
     final result = await showDialog<bool>(
       context: context,
       builder:
@@ -166,12 +169,9 @@ class PurchasedItemTile extends StatelessWidget {
           ),
     );
 
-    if (result == true && context.mounted) {
-      final clientId = ClientDetailsScope.clientOf(context).id;
-      if (clientId != null && item.id != null) {
-        context.read<ClientAccountViewModel>().deleteItem(clientId, item.id!);
-        return true;
-      }
+    if (result == true && clientId != null && item.id != null) {
+      clientAccountViewModel.deleteItem(clientId, item.id!);
+      return true;
     }
     return false;
   }
@@ -181,6 +181,10 @@ class PurchasedItemTile extends StatelessWidget {
     final descController = TextEditingController(text: item.description);
     final qtdController = TextEditingController(text: item.quantity.toString());
     final valorController = TextEditingController(text: item.value);
+    final unitController = TextEditingController(text: item.unit);
+
+    final clientId = ClientDetailsScope.clientOf(context).id;
+    final clientAccountViewModel = context.read<ClientAccountViewModel>();
 
     await showDialog(
       context: context,
@@ -201,17 +205,24 @@ class PurchasedItemTile extends StatelessWidget {
                       Text('Editar Item', style: theme.textTheme.titleLarge),
                       const SizedBox(height: 24),
                       DefaultFormField(
-                        name: 'Descrição',
-                        controller: descController,
-                        theme: theme,
-                      ),
-                      const SizedBox(height: 16),
-                      DefaultFormField(
                         name: 'Quantidade',
                         controller: qtdController,
                         theme: theme,
                         keyboardType: TextInputType.number,
                       ),
+                      const SizedBox(height: 16),
+                      DefaultFormField(
+                        name: 'Unidade',
+                        controller: unitController,
+                        theme: theme,
+                        hintText: 'Ex: UND, KG...',
+                      ),
+                      const SizedBox(height: 16),
+                      DefaultFormField(
+                        name: 'Descrição',
+                        controller: descController,
+                        theme: theme,
+                       ),
                       const SizedBox(height: 16),
                       DefaultFormField(
                         name: 'Valor Unitário',
@@ -229,6 +240,7 @@ class PurchasedItemTile extends StatelessWidget {
                         title: 'Salvar Alterações',
                         onPressed: () {
                           final String desc = descController.text.trim();
+                          final String unit = unitController.text.trim();
                           final String rawValue = valorController.text
                               .replaceAll('R\$ ', '')
                               .replaceAll('.', '')
@@ -236,16 +248,15 @@ class PurchasedItemTile extends StatelessWidget {
                           final double valor = double.tryParse(rawValue) ?? 0;
                           final int qtd = int.tryParse(qtdController.text) ?? 0;
 
-                          if (desc.isNotEmpty && qtd > 0 && valor > 0) {
-                            final clientId =
-                                ClientDetailsScope.clientOf(context).id;
+                          if (desc.isNotEmpty && unit.isNotEmpty && qtd > 0 && valor > 0) {
                             if (clientId != null && item.id != null) {
-                              context.read<ClientAccountViewModel>().updateItem(
+                              clientAccountViewModel.updateItem(
                                 clientId,
                                 item.id!,
                                 desc,
                                 qtd,
                                 valor,
+                                unit,
                               );
                             }
                             Navigator.pop(ctx);

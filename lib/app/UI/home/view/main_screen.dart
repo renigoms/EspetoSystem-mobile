@@ -12,9 +12,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:showcaseview/showcaseview.dart';
+import 'package:espetosystem/app/UI/home/widgets/custom_showcase.dart';
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  final GlobalKey _searchKey = GlobalKey();
+  final GlobalKey _addClientKey = GlobalKey();
+  final GlobalKey _sortKey = GlobalKey();
+  final GlobalKey _filterBarKey = GlobalKey();
+  bool _tutorialStarted = false;
 
   Future<void> _openClientForm(
     BuildContext context,
@@ -55,125 +68,163 @@ class MainScreen extends StatelessWidget {
     final orientation = MediaQuery.of(context).orientation;
     final theme = Theme.of(context);
 
-    return Consumer<HomeViewModel>(
-      builder: (context, viewModel, child) {
-        final clients = viewModel.visibleClients;
+    return ShowCaseWidget(
+      builder: (showcaseContext) {
+        return Consumer<HomeViewModel>(
+          builder: (context, viewModel, child) {
+            final clients = viewModel.visibleClients;
 
-        return Scaffold(
-          appBar: PreferredSize(
-            preferredSize: const Size.fromHeight(75),
-            child: AppBarCustom(theme: theme),
-          ),
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 15),
-                    child: Column(
-                      spacing: 18,
-                      children: [
-                        Row(
-                          spacing: 12,
+            // Dispara o tutorial assim que os dados carregarem e se o usuário ainda não tiver visto
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!viewModel.isLoading && !viewModel.hasSeenOnboarding && !_tutorialStarted) {
+                _tutorialStarted = true;
+                ShowCaseWidget.of(context).startShowCase([
+                  _searchKey,
+                  _addClientKey,
+                  _sortKey,
+                  _filterBarKey,
+                ]);
+                viewModel.completeOnboarding();
+              }
+            });
+
+            return Scaffold(
+              appBar: PreferredSize(
+                preferredSize: const Size.fromHeight(75),
+                child: AppBarCustom(
+                  theme: theme,
+                  onHelpTap: () {
+                    _tutorialStarted = true;
+                    ShowCaseWidget.of(showcaseContext).startShowCase([
+                      _searchKey,
+                      _addClientKey,
+                      _sortKey,
+                      _filterBarKey,
+                    ]);
+                  },
+                ),
+              ),
+              body: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 15),
+                        child: Column(
+                          spacing: 18,
                           children: [
-                            Expanded(
-                              flex: orientation == Orientation.portrait ? 4 : 9,
-                              child: SearchBarStaticCustom(
-                                theme: theme,
-                                onTap:
-                                    () => _openSearchPage(context, viewModel),
-                              ),
-                            ),
                             Row(
-                              mainAxisSize: MainAxisSize.min,
+                              spacing: 12,
                               children: [
-                                Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap:
-                                        () =>
-                                            _openClientForm(context, viewModel),
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: Container(
-                                      width: 31,
-                                      height: 31,
-                                      decoration: BoxDecoration(
-                                        color: theme.colorScheme.primary,
-                                        border: Border.all(
-                                          color: theme.colorScheme.onSecondary,
-                                        ),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: SvgPicture.asset(
-                                        'assets/icons/user-plus.svg',
-                                        width: 16,
-                                        height: 16,
-                                        colorFilter: ColorFilter.mode(
-                                          theme.colorScheme.onSurface,
-                                          BlendMode.srcIn,
-                                        ),
-                                      ),
+                                Expanded(
+                                  flex: orientation == Orientation.portrait ? 4 : 9,
+                                  child: CustomShowcase(
+                                    showcaseKey: _searchKey,
+                                    title: 'Buscar Clientes',
+                                    description: 'Pesquise por nome, telefone, CPF ou endereço.',
+                                    child: SearchBarStaticCustom(
+                                      theme: theme,
+                                      onTap: () => _openSearchPage(context, viewModel),
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                FilterArrow(
-                                  theme: theme,
-                                  isAscending: viewModel.ascendingOrder,
-                                  onTap: viewModel.toggleSortOrder,
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CustomShowcase(
+                                      showcaseKey: _addClientKey,
+                                      title: 'Novo Cliente',
+                                      description: 'Clique aqui para cadastrar um novo cliente no sistema.',
+                                      targetShapeBorder: const CircleBorder(),
+                                      child: Material(
+                                        color: Colors.transparent,
+                                        child: InkWell(
+                                          onTap: () => _openClientForm(context, viewModel),
+                                          borderRadius: BorderRadius.circular(6),
+                                          child: Container(
+                                            width: 31,
+                                            height: 31,
+                                            decoration: BoxDecoration(
+                                              color: theme.colorScheme.primary,
+                                              border: Border.all(
+                                                color: theme.colorScheme.onSecondary,
+                                              ),
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            alignment: Alignment.center,
+                                            child: SvgPicture.asset(
+                                              'assets/icons/user-plus.svg',
+                                              width: 16,
+                                              height: 16,
+                                              colorFilter: ColorFilter.mode(
+                                                theme.colorScheme.onSurface,
+                                                BlendMode.srcIn,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    CustomShowcase(
+                                      showcaseKey: _sortKey,
+                                      title: 'Ordenar Lista',
+                                      description: 'Altere a ordem dos clientes de A-Z ou Z-A.',
+                                      targetShapeBorder: const CircleBorder(),
+                                      child: FilterArrow(
+                                        theme: theme,
+                                        isAscending: viewModel.ascendingOrder,
+                                        onTap: viewModel.toggleSortOrder,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
+                            CustomShowcase(
+                              showcaseKey: _filterBarKey,
+                              title: 'Filtros Rápidos',
+                              description: 'Filtre os clientes por Devendo, Pago, Limpo ou Atrasadas.',
+                              child: FilterBarCustom(
+                                theme: theme,
+                                selectedIndex: viewModel.selectedFilterIndex,
+                                onSelected: viewModel.setSelectedFilterIndex,
+                              ),
+                            ),
                           ],
                         ),
-                        FilterBarCustom(
-                          theme: theme,
-                          selectedIndex: viewModel.selectedFilterIndex,
-                          onSelected: viewModel.setSelectedFilterIndex,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Clientes',
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: theme.colorScheme.onSurface,
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Expanded(
-                    child:
-                        viewModel.isLoading && clients.isEmpty
+                      const SizedBox(height: 14),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Clientes',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Expanded(
+                        child: viewModel.isLoading && clients.isEmpty
                             ? const Center(child: CircularProgressIndicator())
                             : RefreshIndicator(
-                              onRefresh: viewModel.loadClients,
-                              child:
-                                  clients.isEmpty
-                                      ? const SingleChildScrollView(
-                                        physics:
-                                            AlwaysScrollableScrollPhysics(),
+                                onRefresh: viewModel.loadClients,
+                                child: clients.isEmpty
+                                    ? const SingleChildScrollView(
+                                        physics: AlwaysScrollableScrollPhysics(),
                                         child: EmptyClientState(),
                                       )
-                                      : ListView.separated(
+                                    : ListView.separated(
                                         padding: const EdgeInsets.only(
                                           bottom: 20,
                                         ),
                                         itemCount: clients.length,
-                                        separatorBuilder:
-                                            (_, __) =>
-                                                const SizedBox(height: 10),
+                                        separatorBuilder: (_, __) => const SizedBox(height: 10),
                                         itemBuilder: (context, index) {
                                           final client = clients[index];
-                                          final status =
-                                              viewModel.accountStatuses[client
-                                                  .id] ??
-                                              'LIMPA';
+                                          final status = viewModel.accountStatuses[client.id] ?? 'LIMPA';
                                           return ClientCard(
                                             client: client,
                                             status: status,
@@ -186,12 +237,14 @@ class MainScreen extends StatelessWidget {
                                           );
                                         },
                                       ),
-                            ),
+                              ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );

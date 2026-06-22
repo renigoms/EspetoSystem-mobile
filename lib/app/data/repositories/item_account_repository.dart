@@ -52,8 +52,13 @@ class ItemAccountRepository extends BaseRepository<ItemAccountModel> {
         final List<Map<String, dynamic>> data = await remoteDataSource
             .fetchWhereIn(tableName, 'account_id', accountIds);
 
-        await localDataSource.save(userCacheKey, data);
-        return data.map((e) => fromJson(e)).toList();
+        // Preserva os itens temporários locais ainda não sincronizados no cache
+        final cached = await getCachedList(userCacheKey);
+        final unsynced = cached.where((item) => item.id?.startsWith('temp_') == true).map((e) => toJson(e)).toList();
+
+        final List<Map<String, dynamic>> combined = [...data, ...unsynced];
+        await localDataSource.save(userCacheKey, combined);
+        return combined.map((e) => fromJson(e)).toList();
       } catch (e) {
         debugPrint('Error fetching items for user $userId: $e');
         return getCachedList(userCacheKey);

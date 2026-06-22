@@ -72,7 +72,7 @@ class ClientAccountService {
     final List<PurchasedItemModel> loadedItems = [];
 
     // Tenta carregar todos os itens para cache local primeiro para agilizar se estiver offline
-    final userItemsCacheKey = 'cached_items_global_$userId';
+    final userItemsCacheKey = '${itemRepository.cacheKey}_$userId';
     List<ItemModel> allItems = [];
 
     if (await itemRepository.networkInfo.isConnected) {
@@ -135,7 +135,7 @@ class ClientAccountService {
           PurchasedItemModel(
             id: ia.id,
             quantity: ia.quantity,
-            unit: item.measurementUnit,
+            unit: ia.measurementUnit,
             description: item.description,
             value:
                 'R\$ ${ia.unitValue.toStringAsFixed(2).replaceAll('.', ',')}',
@@ -217,13 +217,12 @@ class ClientAccountService {
 
   Future<ItemModel> getOrCreateItem(
     String description,
-    String unit,
     String userId,
   ) async {
     ItemModel? item;
 
     // 1. Tenta buscar no cache local de produtos globais primeiro
-    final userItemsCacheKey = 'cached_items_global_$userId';
+    final userItemsCacheKey = '${itemRepository.cacheKey}_$userId';
     final cached = itemRepository.localDataSource.get(userItemsCacheKey) as List?;
     if (cached != null) {
       final cachedItems = cached
@@ -254,25 +253,27 @@ class ClientAccountService {
     }
 
     item ??= await itemRepository.saveForUser(
-      ItemModel(description: description, measurementUnit: unit),
+      ItemModel(description: description),
       userId,
     );
     return item!;
   }
 
-  Future<void> linkItemToAccount(
+  Future<ItemAccountModel?> linkItemToAccount(
     String itemId,
     String accountId,
     int quantity,
     double unitValue,
+    String unit,
     String userId,
   ) async {
-    await itemAccountRepository.saveForUser(
+    return await itemAccountRepository.saveForUser(
       ItemAccountModel(
         quantity: quantity,
         itemId: itemId,
         accountId: accountId,
         unitValue: unitValue,
+        measurementUnit: unit,
       ),
       userId,
     );
@@ -332,35 +333,84 @@ class ClientAccountService {
     String description,
     int quantity,
     double unitValue,
+    String unit,
     String userId,
   ) async {
-    final results = await itemAccountRepository.remoteDataSource
-        .fetchWithFilter(itemAccountRepository.tableName, 'id', id);
+    debugPrint('DEBUG [updateItemAccount]: Iniciado para id: $id');
+    ItemAccountModel? current;
 
-    if (results.isNotEmpty) {
-      final current = ItemAccountModel.fromJson(results.first);
+    // 1. Tenta obter o item da conta localmente primeiro
+    final userCacheKey = 'cached_item_account_$userId';
+    final cachedItems = await itemAccountRepository.getCachedList(userCacheKey);
+    try {
+      current = cachedItems.firstWhere((it) => it.id == id);
+    } catch (_) {}
 
-      final itemData = await itemRepository.remoteDataSource.fetchById(
-        itemRepository.tableName,
-        current.itemId,
-      );
-      final originalItem = ItemModel.fromJson(itemData);
-
-      final newItem = await getOrCreateItem(
-        description,
-        originalItem.measurementUnit,
-        userId,
-      );
-
-      final updated = ItemAccountModel(
-        id: id,
-        quantity: quantity,
-        unitValue: unitValue,
-        itemId: newItem.id!,
-        accountId: current.accountId,
-        createdAt: current.createdAt,
-      );
-      await itemAccountRepository.saveForUser(updated, userId);
+    // 2. Se não achar localmente, tenta obter remotamente (caso esteja online)
+    if (current == null && await itemAccountRepository.networkInfo.isConnected) {
+      try {
+        final results = await itemAccountRepository.remoteDataSource
+            .fetchWithFilter(itemAccountRepository.tableName, 'id', id);
+        if (results.isNotEmpty) {
+          current = ItemAccountModel.fromJson(results.first);
+        }
+      } catch (e) {
+        debugPrint('DEBUG [updateItemAccount]: Erro ao carregar item da conta remoto: $e');
+      }
     }
+
+    if (current == null) {
+      debugPrint('DEBUG [updateItemAccount]: ItemAccountModel com id $id NÃO encontrado localmente ou remotamente.');
+      return;
+    }
+    debugPrint('DEBUG [updateItemAccount]: Registro encontrado: accountId=${current.accountId}, itemId=${current.itemId}');
+
+    // 3. Tenta obter o produto original associado a esse item localmente
+    ItemModel? originalItem;
+    final userItemsCacheKey = '${itemRepository.cacheKey}_$userId';
+    final cachedProducts = itemRepository.localDataSource.get(userItemsCacheKey) as List?;
+    if (cachedProducts != null) {
+      final cachedList = cachedProducts
+          .map((e) => ItemModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+      try {
+        originalItem = cachedList.firstWhere((it) => it.id == current!.itemId);
+      } catch (_) {}
+    }
+
+    // 4. Se não achar localmente, tenta obter remotamente
+    if (originalItem == null && await itemRepository.networkInfo.isConnected) {
+      try {
+        final itemData = await itemRepository.remoteDataSource.fetchById(
+          itemRepository.tableName,
+          current.itemId,
+        );
+        originalItem = ItemModel.fromJson(itemData);
+      } catch (e) {
+        debugPrint('DEBUG [updateItemAccount]: Erro ao carregar item original do remote: $e');
+      }
+    }
+
+    // 5. Busca ou cria o novo produto (offline-first)
+    final newItem = await getOrCreateItem(
+      description,
+      userId,
+    );
+    debugPrint('DEBUG [updateItemAccount]: newItem obtido: id=${newItem.id}, description=${newItem.description}');
+
+    // 6. Atualiza o modelo de relacionamento e salva (persistindo localmente e na fila de sincronização se necessário)
+    final updated = ItemAccountModel(
+      id: id,
+      quantity: quantity,
+      unitValue: unitValue,
+      itemId: newItem.id!,
+      accountId: current.accountId,
+      measurementUnit: unit,
+      createdAt: current.createdAt,
+    );
+
+    debugPrint('DEBUG [updateItemAccount]: Salvando ItemAccountModel atualizado no ItemAccountRepository...');
+    await itemAccountRepository.saveForUser(updated, userId);
+    debugPrint('DEBUG [updateItemAccount]: Concluído com sucesso.');
   }
 }

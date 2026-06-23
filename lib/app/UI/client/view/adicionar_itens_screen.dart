@@ -16,6 +16,7 @@ class AdicionarItensScreen extends StatefulWidget {
 class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
   // Lista que será populada dinamicamente
   final List<Map<String, dynamic>> itensAdicionados = [];
+  final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _quantidadeController = TextEditingController();
   final TextEditingController _unidadeController = TextEditingController(
@@ -34,12 +35,12 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
   }
 
   void _adicionarItem() {
-    final qtdText = _quantidadeController.text;
-    final unidade = _unidadeController.text;
-    final valorText = _valorController.text;
-    final desc = _descricaoController.text;
+    if (_formKey.currentState!.validate()) {
+      final qtdText = _quantidadeController.text;
+      final unidade = _unidadeController.text;
+      final valorText = _valorController.text;
+      final desc = _descricaoController.text;
 
-    if (qtdText.isNotEmpty && desc.isNotEmpty && valorText.isNotEmpty) {
       final double qtd = double.tryParse(qtdText) ?? 0;
       // Remove "R$ ", replace thousands separator (dots) and decimal separator (comma)
       final String numericValor = valorText
@@ -61,9 +62,10 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
         });
       });
       _quantidadeController.clear();
-      _unidadeController.text = 'UND';
       _descricaoController.clear();
       _valorController.clear();
+      _formKey.currentState!.reset();
+      _unidadeController.text = 'UND';
     }
   }
 
@@ -78,6 +80,8 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: theme.colorScheme.surface,
+        scrolledUnderElevation: 0.0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: theme.colorScheme.tertiary),
           onPressed: () {
@@ -94,118 +98,142 @@ class _AdicionarItensScreenState extends State<AdicionarItensScreen> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // --- SEÇÃO DO FORMULÁRIO ---
-            Row(
-              spacing: 16,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: DefaultFormField(
-                    name: 'Quantidade',
-                    controller: _quantidadeController,
-                    theme: theme,
-                    hintText: 'Ex: 1',
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: DefaultFormField(
-                    name: 'Unidade',
-                    controller: _unidadeController,
-                    theme: theme,
-                    hintText: 'Ex: UND, KG...',
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-
-            DefaultFormField(
-              name: 'Descrição',
-              controller: _descricaoController,
-              theme: theme,
-              hintText: 'produto, serviço...',
-              maxLines: 4,
-            ),
-            const SizedBox(height: 16),
-
-            DefaultFormField(
-              name: 'Valor Unitário',
-              controller: _valorController,
-              theme: theme,
-              hintText: 'R\$ 0,00',
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                CurrencyInputFormatter(),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            // Botão Adicionar Item (Texto Azul com Borda Tracejada)
-            DashedButtom(action: _adicionarItem, theme: theme),
-
-            const SizedBox(height: 16),
-
-            // Botão Concluir (Fundo Azul)
-            ElevatedButtomCustom(
-              theme: theme,
-              title: 'Concluir',
-              onPressed: () {
-                Navigator.of(context).pop(itensAdicionados);
-              },
-            ),
-
-            const SizedBox(height: 32),
-
-            // --- SEÇÃO DA LISTA ---
-            if (itensAdicionados.isNotEmpty) ...[
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- SEÇÃO DO FORMULÁRIO ---
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                spacing: 16,
                 children: [
-                  Text(
-                    'Itens Adicionados (${itensAdicionados.length})',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  Expanded(
+                    flex: 2,
+                    child: DefaultFormField(
+                      name: 'Quantidade',
+                      controller: _quantidadeController,
+                      theme: theme,
+                      hintText: 'Ex: 1',
+                      keyboardType: TextInputType.number,
+                      validate: (value) => value == null || value.trim().isEmpty
+                          ? 'Informe a quantidade'
+                          : null,
                     ),
                   ),
-                  Text(
-                    'Total: R\$ ${_totalGeral.toStringAsFixed(2).replaceAll('.', ',')}',
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.tertiary,
+                  Expanded(
+                    flex: 3,
+                    child: DefaultFormField(
+                      name: 'Unidade',
+                      controller: _unidadeController,
+                      theme: theme,
+                      hintText: 'Ex: UND, KG...',
+                      validate: (value) => value == null || value.trim().isEmpty
+                          ? 'Informe a unidade'
+                          : null,
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
 
-              // Lista de Cards
-              ListView.builder(
-                shrinkWrap:
-                    true, // Necessário por estar dentro do SingleChildScrollView
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: itensAdicionados.length,
-                itemBuilder: (context, index) {
-                  final item = itensAdicionados[index];
-                  return BuildItemCard(
-                    index: index,
-                    item: item,
-                    theme: theme,
-                    action: () {
-                      setState(() {
-                        itensAdicionados.removeAt(index);
-                      });
-                    },
-                  );
+              DefaultFormField(
+                name: 'Descrição',
+                controller: _descricaoController,
+                theme: theme,
+                hintText: 'produto, serviço...',
+                maxLines: 4,
+                validate: (value) => value == null || value.trim().isEmpty
+                    ? 'Informe a descrição'
+                    : null,
+              ),
+              const SizedBox(height: 16),
+
+              DefaultFormField(
+                name: 'Valor Unitário',
+                controller: _valorController,
+                theme: theme,
+                hintText: 'R\$ 0,00',
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  CurrencyInputFormatter(),
+                ],
+                validate: (value) => value == null || value.trim().isEmpty
+                    ? 'Informe o valor'
+                    : null,
+              ),
+              const SizedBox(height: 24),
+
+              // Botão Adicionar Item (Texto Azul com Borda Tracejada)
+              DashedButtom(action: _adicionarItem, theme: theme),
+
+              const SizedBox(height: 16),
+
+              // Botão Concluir (Fundo Azul)
+              ElevatedButtomCustom(
+                theme: theme,
+                title: 'Concluir',
+                onPressed: () {
+                  if (itensAdicionados.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Adicione um item'),
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  } else {
+                    Navigator.of(context).pop(itensAdicionados);
+                  }
                 },
               ),
+
+              const SizedBox(height: 32),
+
+              // --- SEÇÃO DA LISTA ---
+              if (itensAdicionados.isNotEmpty) ...[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Itens Adicionados (${itensAdicionados.length})',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Total: R\$ ${_totalGeral.toStringAsFixed(2).replaceAll('.', ',')}',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.tertiary,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Lista de Cards
+                ListView.builder(
+                  shrinkWrap:
+                      true, // Necessário por estar dentro do SingleChildScrollView
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: itensAdicionados.length,
+                  itemBuilder: (context, index) {
+                    final item = itensAdicionados[index];
+                    return BuildItemCard(
+                      index: index,
+                      item: item,
+                      theme: theme,
+                      action: () {
+                        setState(() {
+                          itensAdicionados.removeAt(index);
+                        });
+                      },
+                    );
+                  },
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

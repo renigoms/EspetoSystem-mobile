@@ -1,41 +1,82 @@
-import 'package:espetosystem/app/data/repositories/auth_repository.dart';
+import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
+import 'package:espetosystem/app/core/widgets/photo_options_modal.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
-Future<void> updateProfilePhoto(
-  BuildContext context,
-  AuthRepository authRepository,
-) async {
+Future<void> updateProfilePhoto(BuildContext context) async {
+  final authViewModel = context.read<AuthViewModel>();
+  final hasAvatar = authViewModel.currentUser?.userMetadata?['avatar_url'] != null;
+
+  await showPhotoOptionsModal(
+    context: context,
+    onCameraTap: () => _handleImagePick(context, ImageSource.camera),
+    onGalleryTap: () => _handleImagePick(context, ImageSource.gallery),
+    onRemoveTap: hasAvatar ? () => _removePhoto(context) : null,
+  );
+}
+
+Future<void> _handleImagePick(BuildContext context, ImageSource source) async {
   final ImagePicker picker = ImagePicker();
+  final authViewModel = context.read<AuthViewModel>();
+
   try {
-    // 1. Seleciona a imagem da galeria
     final XFile? image = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 512, // Limita o tamanho para performance
+      source: source,
+      maxWidth: 512,
       maxHeight: 512,
       imageQuality: 80,
     );
 
-    if (image != null) {
-      // Nota: Para um app de produção, você faria o upload da imagem
-      // para o Supabase Storage aqui e obteria a URL pública.
-      // Como estamos focados na lógica de metadados agora,
-      // vamos simular o salvamento de uma URL ou path.
-
-      // TODO: Implementar upload para Supabase Storage se necessário.
-      // Por enquanto, atualizamos apenas se tivéssemos a URL.
-
+    if (image != null && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Funcionalidade de upload de foto em desenvolvimento.'),
+          content: Text('Atualizando sua foto de perfil...'),
+          duration: Duration(seconds: 2),
         ),
+      );
+
+      final userId = authViewModel.currentUser?.id;
+      if (userId == null) return;
+
+      // 1. Upload e geração de URL via ViewModel (que usa o Repository)
+      final String publicUrl = await authViewModel.uploadAvatar(
+        userId,
+        image.path,
+      );
+
+      // 2. Atualizar o perfil (metadata do usuário)
+      await authViewModel.updateProfile(avatarUrl: publicUrl);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto de perfil atualizada!')),
+        );
+      }
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao atualizar foto: $e')));
+    }
+  }
+}
+
+Future<void> _removePhoto(BuildContext context) async {
+  final authViewModel = context.read<AuthViewModel>();
+  try {
+    await authViewModel.updateProfile(avatarUrl: null);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto removida com sucesso!')),
       );
     }
   } catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Erro ao selecionar foto: $e')));
+      ).showSnackBar(SnackBar(content: Text('Erro ao remover foto: $e')));
     }
   }
 }

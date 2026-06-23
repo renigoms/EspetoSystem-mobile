@@ -19,12 +19,13 @@ class UserProfileAvatar extends StatelessWidget {
     final theme = Theme.of(context);
 
     final avatar =
-        avatarUrl != null
+        (avatarUrl != null && avatarUrl!.isNotEmpty)
             ? ClipOval(
               child: Image.network(
                 avatarUrl!,
                 width: size,
                 height: size,
+                key: ValueKey(avatarUrl), // Ajuda o Flutter a identificar mudanças
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => _fallbackContent(theme),
               ),
@@ -58,7 +59,7 @@ class UserProfileAvatar extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      color: theme.colorScheme.primaryContainer.withOpacity(0.06),
+      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.06),
       alignment: Alignment.center,
       child: Text(
         text,

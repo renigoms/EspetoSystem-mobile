@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import '../../../data/repositories/auth_repository.dart';
@@ -44,6 +45,8 @@ class AuthViewModel extends ChangeNotifier {
 
   bool get passwordFailVerify =>
       !_hasMinLength || !_hasNumberCase || !_hasUpperCase || !_hasSpecialCase;
+
+  User? get currentUser => _authRepository!.supabaseClient.auth.currentUser;
 
   void setIsLogin(bool value) {
     _isLogin = _isLogin != value ? !_isLogin : _isLogin;
@@ -136,6 +139,10 @@ class AuthViewModel extends ChangeNotifier {
     if (_authRepository == null) {
       return "Erro de configuração: Repositório não inicializado";
     }
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult.contains(ConnectivityResult.none)) {
+      return "Sem conexão com a internet. Verifique sua rede e tente novamente.";
+    }
     try {
       final result = await _authRepository.signInWithGoogle();
 
@@ -173,4 +180,19 @@ class AuthViewModel extends ChangeNotifier {
       return "Erro ao atualizar senha: $e";
     }
   }
+
+  Future<void> signOut() async => await _authRepository!.signOut();
+
+  Future<void> updateProfile({String? name, String? avatarUrl}) async {
+    await _authRepository!.updateProfile(name: name, avatarUrl: avatarUrl);
+    notifyListeners();
+  }
+
+  Future<String> uploadAvatar(String userId, String filePath) async {
+    final url = await _authRepository!.uploadAvatar(userId, filePath);
+    return url;
+  }
+
+  Future<AuthResponse> singInWithEmail(String email, String password) async =>
+      _authRepository!.signInWithEmail(email, password);
 }

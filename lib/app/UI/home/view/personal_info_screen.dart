@@ -1,10 +1,10 @@
+import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
 import 'package:espetosystem/app/UI/home/components/image_manage.dart';
 import 'package:espetosystem/app/UI/home/components/person_info_dialog_custom.dart';
 import 'package:espetosystem/app/UI/home/extensions/string_extension.dart';
 import 'package:espetosystem/app/UI/home/extensions/user_extension.dart';
 import 'package:espetosystem/app/UI/home/widgets/styled_tile.dart';
 import 'package:espetosystem/app/UI/home/widgets/user_profile_avatar.dart';
-import 'package:espetosystem/app/data/repositories/auth_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -18,7 +18,7 @@ class PersonalInfoScreen extends StatefulWidget {
 
 class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   Future<void> _signOut(BuildContext context) async {
-    await context.read<AuthRepository>().signOut();
+    await context.read<AuthViewModel>().signOut();
     if (!context.mounted) {
       return;
     }
@@ -28,8 +28,8 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final authRepository = context.read<AuthRepository>();
-    final currentUser = authRepository.supabaseClient.auth.currentUser;
+    final viewModel = context.read<AuthViewModel>();
+    final currentUser = viewModel.currentUser;
     final displayName = currentUser?.displayName;
     final email = currentUser?.email ?? 'Sem e-mail cadastrado';
     final fallbackLabel = displayName!.fallbackLabel;
@@ -53,7 +53,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               child: Column(
                 children: [
                   GestureDetector(
-                    onTap: () => updateProfilePhoto(context, authRepository),
+                    onTap: () => updateProfilePhoto(context),
                     child: UserProfileAvatar(
                       size: 88,
                       avatarUrl: currentUser?.avatarUrl,
@@ -98,7 +98,6 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                                 () => showEditNameDialog(
                                   context,
                                   theme,
-                                  authRepository,
                                   displayName,
                                   () {
                                     setState(() {});
@@ -117,7 +116,6 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                                 () => showChangePasswordDialog(
                                   context,
                                   theme,
-                                  authRepository,
                                   email,
                                 ),
                           ),

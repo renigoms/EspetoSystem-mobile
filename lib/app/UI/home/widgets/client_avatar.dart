@@ -46,7 +46,7 @@ class ClientAvatar extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        color: theme.colorScheme.primaryContainer.withOpacity(0.12),
+        color: theme.colorScheme.primaryContainer.withValues(alpha: 0.12),
         child: image,
       ),
     );

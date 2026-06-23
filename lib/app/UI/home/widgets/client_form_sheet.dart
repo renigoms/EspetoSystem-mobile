@@ -21,7 +21,6 @@ class ClientFormSheet extends StatefulWidget {
 
 class _ClientFormSheetState extends State<ClientFormSheet> {
   final _formKey = GlobalKey<FormState>();
-  // final _imagePicker = ImagePicker();
   late TextEditingController _nameController;
   late TextEditingController _descriptionController;
   late TextEditingController _cpfController;
@@ -67,7 +66,6 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
     }
 
     final number = int.tryParse(_numberController.text.trim()) ?? 0;
-    // final isEdit = widget.client != null;
     final clientId = widget.client?.id ?? Uuid().v4();
 
     Navigator.of(context).pop(
@@ -166,8 +164,6 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                       name: "Descrição",
                       controller: _descriptionController,
                       theme: theme,
-                      validate:
-                          (value) => _validate('Informe a descricao', value),
                       labelStyle: theme.textTheme.labelSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -191,7 +187,7 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                           ],
                           validate: (value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Informe o CPF';
+                              return null;
                             }
                             if (!validateCPF(value)) {
                               return 'CPF inválido';
@@ -271,11 +267,6 @@ class _ClientFormSheetState extends State<ClientFormSheet> {
                                   labelStyle: theme.textTheme.labelSmall
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                   theme: theme,
-                                  validate:
-                                      (value) => _validate(
-                                        "Informe o número residencial",
-                                        value,
-                                      ),
                                 ),
                               ),
                             ],

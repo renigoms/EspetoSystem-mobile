@@ -1,6 +1,7 @@
+import 'package:espetosystem/app/core/widgets/custom_snack_bar.dart';
 import 'package:espetosystem/app/UI/home/components/modal_custom.dart';
 import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
-import 'package:espetosystem/app/UI/home/widgets/app_bar.dart';
+import 'package:espetosystem/app/UI/home/widgets/app_bar_custom.dart';
 import 'package:espetosystem/app/UI/home/widgets/client_card.dart';
 import 'package:espetosystem/app/UI/home/widgets/empty_client_state.dart';
 import 'package:espetosystem/app/UI/home/widgets/filter_arrow.dart';
@@ -11,9 +12,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:showcaseview/showcaseview.dart';
+import 'package:espetosystem/app/UI/home/widgets/custom_showcase.dart';
 
-class MainScreen extends StatelessWidget {
+class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
+
+  @override
+  State<MainScreen> createState() => _MainScreenState();
+}
+
+class _MainScreenState extends State<MainScreen> {
+  final GlobalKey _searchKey = GlobalKey();
+  final GlobalKey _addClientKey = GlobalKey();
+  final GlobalKey _sortKey = GlobalKey();
+  final GlobalKey _filterBarKey = GlobalKey();
+  bool _tutorialStarted = false;
+  late final ShowcaseView _showcaseView;
 
   Future<void> _openClientForm(
     BuildContext context,
@@ -25,6 +40,10 @@ class MainScreen extends StatelessWidget {
 
     if (created != null) {
       await viewModel.addClient(created);
+
+      if (context.mounted) {
+        CustomSnackBar.showSuccess(context, 'Cliente adicionado com sucesso!');
+      }
     }
   }
 
@@ -46,6 +65,18 @@ class MainScreen extends StatelessWidget {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _showcaseView = ShowcaseView.register(scope: 'main_screen');
+  }
+
+  @override
+  void dispose() {
+    _showcaseView.unregister();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final orientation = MediaQuery.of(context).orientation;
     final theme = Theme.of(context);
@@ -54,10 +85,35 @@ class MainScreen extends StatelessWidget {
       builder: (context, viewModel, child) {
         final clients = viewModel.visibleClients;
 
+        // Dispara o tutorial assim que os dados carregarem e se o usuário ainda não tiver visto
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!viewModel.isLoading && !viewModel.hasSeenOnboarding && !_tutorialStarted) {
+            _tutorialStarted = true;
+            ShowcaseView.getNamed('main_screen').startShowCase([
+              _searchKey,
+              _addClientKey,
+              _sortKey,
+              _filterBarKey,
+            ]);
+            viewModel.completeOnboarding();
+          }
+        });
+
         return Scaffold(
           appBar: PreferredSize(
             preferredSize: const Size.fromHeight(75),
-            child: AppBarCustom(theme: theme),
+            child: AppBarCustom(
+              theme: theme,
+              onHelpTap: () {
+                _tutorialStarted = true;
+                ShowcaseView.getNamed('main_screen').startShowCase([
+                  _searchKey,
+                  _addClientKey,
+                  _sortKey,
+                  _filterBarKey,
+                ]);
+              },
+            ),
           ),
           body: SafeArea(
             child: Padding(
@@ -74,59 +130,82 @@ class MainScreen extends StatelessWidget {
                           children: [
                             Expanded(
                               flex: orientation == Orientation.portrait ? 4 : 9,
-                              child: SearchBarStaticCustom(
-                                theme: theme,
-                                onTap:
-                                    () => _openSearchPage(context, viewModel),
+                              child: CustomShowcase(
+                                showcaseKey: _searchKey,
+                                scope: 'main_screen',
+                                title: 'Buscar Clientes',
+                                description: 'Pesquise por nome, telefone, CPF ou endereço.',
+                                child: SearchBarStaticCustom(
+                                  theme: theme,
+                                  onTap: () => _openSearchPage(context, viewModel),
+                                ),
                               ),
                             ),
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap:
-                                        () =>
-                                            _openClientForm(context, viewModel),
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: Container(
-                                      width: 31,
-                                      height: 31,
-                                      decoration: BoxDecoration(
-                                        color: theme.colorScheme.primary,
-                                        border: Border.all(
-                                          color: theme.colorScheme.onSecondary,
+                                CustomShowcase(
+                                  showcaseKey: _addClientKey,
+                                  scope: 'main_screen',
+                                  title: 'Novo Cliente',
+                                  description: 'Clique aqui para cadastrar um novo cliente no sistema.',
+                                  targetShapeBorder: const CircleBorder(),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: () => _openClientForm(context, viewModel),
+                                      borderRadius: BorderRadius.circular(6),
+                                      child: Container(
+                                        width: 31,
+                                        height: 31,
+                                        decoration: BoxDecoration(
+                                          color: theme.colorScheme.primary,
+                                          border: Border.all(
+                                            color: theme.colorScheme.onSecondary,
+                                          ),
+                                          borderRadius: BorderRadius.circular(6),
                                         ),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: SvgPicture.asset(
-                                        'assets/icons/user-plus.svg',
-                                        width: 16,
-                                        height: 16,
-                                        colorFilter: ColorFilter.mode(
-                                          theme.colorScheme.onSurface,
-                                          BlendMode.srcIn,
+                                        alignment: Alignment.center,
+                                        child: SvgPicture.asset(
+                                          'assets/icons/user-plus.svg',
+                                          width: 16,
+                                          height: 16,
+                                          colorFilter: ColorFilter.mode(
+                                            theme.colorScheme.onSurface,
+                                            BlendMode.srcIn,
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                FilterArrow(
-                                  theme: theme,
-                                  isAscending: viewModel.ascendingOrder,
-                                  onTap: viewModel.toggleSortOrder,
+                                CustomShowcase(
+                                  showcaseKey: _sortKey,
+                                  scope: 'main_screen',
+                                  title: 'Ordenar Lista',
+                                  description: 'Altere a ordem dos clientes de A-Z ou Z-A.',
+                                  targetShapeBorder: const CircleBorder(),
+                                  child: FilterArrow(
+                                    theme: theme,
+                                    isAscending: viewModel.ascendingOrder,
+                                    onTap: viewModel.toggleSortOrder,
+                                  ),
                                 ),
                               ],
                             ),
                           ],
                         ),
-                        FilterBarCustom(
-                          theme: theme,
-                          selectedIndex: viewModel.selectedFilterIndex,
-                          onSelected: viewModel.setSelectedFilterIndex,
+                        CustomShowcase(
+                          showcaseKey: _filterBarKey,
+                          scope: 'main_screen',
+                          title: 'Filtros Rápidos',
+                          description: 'Filtre os clientes por Devendo, Pago, Limpo ou Atrasadas.',
+                          child: FilterBarCustom(
+                            theme: theme,
+                            selectedIndex: viewModel.selectedFilterIndex,
+                            onSelected: viewModel.setSelectedFilterIndex,
+                          ),
                         ),
                       ],
                     ),
@@ -143,45 +222,37 @@ class MainScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Expanded(
-                    child:
-                        viewModel.isLoading && clients.isEmpty
-                            ? const Center(child: CircularProgressIndicator())
-                            : RefreshIndicator(
-                              onRefresh: viewModel.loadClients,
-                              child:
-                                  clients.isEmpty
-                                      ? const SingleChildScrollView(
-                                        physics:
-                                            AlwaysScrollableScrollPhysics(),
-                                        child: EmptyClientState(),
-                                      )
-                                      : ListView.separated(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 20,
-                                        ),
-                                        itemCount: clients.length,
-                                        separatorBuilder:
-                                            (_, __) =>
-                                                const SizedBox(height: 10),
-                                        itemBuilder: (context, index) {
-                                          final client = clients[index];
-                                          final status =
-                                              viewModel.accountStatuses[client
-                                                  .id] ??
-                                              'LIMPA';
-                                          return ClientCard(
-                                            client: client,
-                                            status: status,
-                                            onTap: () {
-                                              context.push(
-                                                '/home/client',
-                                                extra: client,
-                                              );
-                                            },
+                    child: viewModel.isLoading && clients.isEmpty
+                        ? const Center(child: CircularProgressIndicator())
+                        : RefreshIndicator(
+                            onRefresh: viewModel.loadClients,
+                            child: clients.isEmpty
+                                ? const SingleChildScrollView(
+                                    physics: AlwaysScrollableScrollPhysics(),
+                                    child: EmptyClientState(),
+                                  )
+                                : ListView.separated(
+                                    padding: const EdgeInsets.only(
+                                      bottom: 20,
+                                    ),
+                                    itemCount: clients.length,
+                                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                                    itemBuilder: (context, index) {
+                                      final client = clients[index];
+                                      final status = viewModel.accountStatuses[client.id] ?? 'LIMPA';
+                                      return ClientCard(
+                                        client: client,
+                                        status: status,
+                                        onTap: () {
+                                          context.push(
+                                            '/home/client',
+                                            extra: client,
                                           );
                                         },
-                                      ),
-                            ),
+                                      );
+                                    },
+                                  ),
+                          ),
                   ),
                 ],
               ),

@@ -1,5 +1,6 @@
 import 'package:espetosystem/app/UI/authentication/view_models/auth_view_model.dart';
 import 'package:espetosystem/app/UI/client/view_model/client_view_model.dart';
+import 'package:espetosystem/app/UI/client/view_model/client_account_view_model.dart';
 import 'package:espetosystem/app/UI/home/view_models/home_view_model.dart';
 import 'package:espetosystem/app/core/themes/color_theme.dart';
 import 'package:espetosystem/app/core/themes/text_theme.dart';
@@ -8,6 +9,8 @@ import 'package:espetosystem/app/routes/general_router.dart';
 import 'package:espetosystem/app/data/repositories/item_repository.dart';
 import 'package:espetosystem/app/data/repositories/item_account_repository.dart';
 import 'package:espetosystem/app/data/repositories/payment_repository.dart';
+import 'package:espetosystem/app/data/services/client_account_service.dart';
+import 'package:espetosystem/app/data/services/local_cache_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:espetosystem/app/data/repositories/auth_repository.dart';
@@ -21,6 +24,7 @@ class MyApp extends StatelessWidget {
   final ItemRepository itemRepository;
   final ItemAccountRepository itemAccountRepository;
   final PaymentRepository paymentRepository;
+  final LocalCacheService localCacheService;
 
   const MyApp({
     super.key,
@@ -30,47 +34,58 @@ class MyApp extends StatelessWidget {
     required this.itemRepository,
     required this.itemAccountRepository,
     required this.paymentRepository,
+    required this.localCacheService,
   });
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider.value(value: authRepository),
-        Provider.value(value: accountRepository),
-        Provider.value(value: clientRepository),
-        Provider.value(value: itemRepository),
-        Provider.value(value: itemAccountRepository),
-        Provider.value(value: paymentRepository),
         ChangeNotifierProvider(
-          create:
-              (_) =>
-                  AuthViewModel(authRepository: authRepository)
-                    ..onPasswordRecovery = (route) {
-                      routes.push(route);
-                    },
+          create: (_) => AuthViewModel(authRepository: authRepository)
+            ..onPasswordRecovery = (route) {
+              routes.push(route);
+            },
         ),
         ChangeNotifierProvider(
-          create:
-              (_) => HomeViewModel(
-                accountRepository: accountRepository,
-                clientRepository: clientRepository,
-                // itemRepository: itemRepository,
-                // itemAccountRepository: itemAccountRepository,
-                // paymentRepository: paymentRepository,
-                supabaseClient: authRepository.supabaseClient,
-              ),
+          create: (_) => HomeViewModel(
+            accountRepository: accountRepository,
+            clientRepository: clientRepository,
+            itemAccountRepository: itemAccountRepository,
+            paymentRepository: paymentRepository,
+            itemRepository: itemRepository,
+            supabaseClient: authRepository.supabaseClient,
+          ),
         ),
-        ChangeNotifierProvider(create: (_) => ThemeViewModel()),
         ChangeNotifierProvider(
-          create:
-              (_) => ClientViewModel(
-                clientRepository,
+          create: (_) => ThemeViewModel(localCacheService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ClientViewModel(
+            clientRepository,
+            authRepository.supabaseClient,
+          ),
+        ),
+        ProxyProvider0<ClientAccountService>(
+          update: (_, __) => ClientAccountService(
+            accountRepository: accountRepository,
+            itemRepository: itemRepository,
+            itemAccountRepository: itemAccountRepository,
+            paymentRepository: paymentRepository,
+          ),
+        ),
+        ChangeNotifierProxyProvider<ClientAccountService, ClientAccountViewModel>(
+          create: (context) => ClientAccountViewModel(
+            context.read<ClientAccountService>(),
+            authRepository.supabaseClient,
+            homeViewModel: context.read<HomeViewModel>(),
+          ),
+          update: (context, service, previous) =>
+              previous ??
+              ClientAccountViewModel(
+                service,
                 authRepository.supabaseClient,
-                accountRepository,
-                itemRepository,
-                itemAccountRepository,
-                paymentRepository,
+                homeViewModel: context.read<HomeViewModel>(),
               ),
         ),
       ],

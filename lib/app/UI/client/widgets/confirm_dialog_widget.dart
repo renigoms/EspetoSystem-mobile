@@ -17,30 +17,34 @@ class ConfirmDialogWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Excluir cliente',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text('Excluir cliente', style: theme.textTheme.titleLarge),
             const SizedBox(height: 16.0),
             Text(
               'Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.white70,
-              ),
+              style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 24.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: Text(
-                    'Cancelar',
-                    style: TextStyle(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                Container(
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.secondary,
+                    border: Border.all(
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: 0.40,
+                      ),
+                    ),
+                    borderRadius: BorderRadius.circular(7),
+                  ),
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text(
+                      'Cancelar',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -54,9 +58,12 @@ class ConfirmDialogWidget extends StatelessWidget {
                     ),
                   ),
                   onPressed: () => Navigator.of(context).pop(true),
-                  child: const Text(
+                  child: Text(
                     'Excluir',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],

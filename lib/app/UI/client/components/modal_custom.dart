@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 Future<String?> actionModal(BuildContext context, ThemeData theme) async =>
     await showModalBottomSheet<String>(
       context: context,
+      backgroundColor: theme.colorScheme.secondary,
       useRootNavigator: true,
       builder: (ctx) {
         return SettingClientWidget(theme: theme);

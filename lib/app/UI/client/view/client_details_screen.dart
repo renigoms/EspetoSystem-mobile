@@ -6,6 +6,7 @@ import 'package:espetosystem/app/UI/client/widgets/client_detail_scope.dart';
 import 'package:espetosystem/app/UI/client/widgets/logo_header.dart';
 import 'package:espetosystem/app/data/models/client_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons_flutter/lucide_icons.dart';
 import 'package:provider/provider.dart';
@@ -65,7 +66,7 @@ class _ClientDetailsShellPageState extends State<ClientDetailsShellPage> {
       if (result != null && context.mounted) {
         final viewModel = context.read<ClientViewModel>();
         debugPrint('DEBUG: Chamando viewModel.saveClient...');
-        final savedClient = await viewModel.saveClient(result);
+        final savedClient = await viewModel.updateClient(result);
         debugPrint('DEBUG: viewModel retornou: ${savedClient?.name}');
 
         if (savedClient != null && context.mounted) {
@@ -109,10 +110,12 @@ class _ClientDetailsShellPageState extends State<ClientDetailsShellPage> {
             actions: [
               IconButton(
                 onPressed: () => _showClientSettings(context, theme, _client),
-                icon: Icon(
-                  LucideIcons.settings,
-                  color: theme.colorScheme.tertiary,
-                  size: 24,
+                icon: SvgPicture.asset(
+                  theme.brightness == Brightness.light
+                      ? 'assets/icons/settings-light.svg'
+                      : 'assets/icons/settings-dark.svg',
+                  width: 24,
+                  height: 24,
                 ),
               ),
               IconButton(

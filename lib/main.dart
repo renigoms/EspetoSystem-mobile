@@ -1,4 +1,5 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:espetosystem/app/data/repositories/auth_repository.dart';
 import 'package:espetosystem/app/data/repositories/account_repository.dart';
 import 'package:espetosystem/app/data/repositories/client_repository.dart';
@@ -17,10 +18,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Inicialização do dotenv
+  await dotenv.load(fileName: ".env");
+
   // Inicialização do Supabase
   await Supabase.initialize(
-    url: 'https://ccdrjqtyepypmwhdillk.supabase.co',
-    publishableKey: 'sb_secret_6Kz6OGV8dTcoQRygqpzfug_5yMZmsCb',
+    url: dotenv.env['SUPABASE_URL'] ?? '',
+    publishableKey: dotenv.env['SUPABASE_KEY'] ?? '',
   );
 
   // Inicialização do SharedPreferences
@@ -33,8 +37,7 @@ void main() async {
   final networkInfo = NetworkInfoImpl(Connectivity());
 
   // Inicialização do Google Sign In
-  const webClientId =
-      '823631587645-ed0pe3ukr3qrga348d40spjjidi8s7lp.apps.googleusercontent.com';
+  final webClientId = dotenv.env['WEB_CLIENT_ID'] ?? '';
 
   await GoogleSignIn.instance.initialize(serverClientId: webClientId);
   final googleSignIn = GoogleSignIn.instance;

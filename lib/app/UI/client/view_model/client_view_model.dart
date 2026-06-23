@@ -1,11 +1,7 @@
 import 'package:espetosystem/app/UI/client/view_model/base_view_model.dart';
 import 'package:espetosystem/app/core/components/view_model_components.dart';
 import 'package:espetosystem/app/data/models/client_model.dart';
-import 'package:espetosystem/app/data/models/payment_model.dart';
-import 'package:espetosystem/app/data/repositories/account_repository.dart';
 import 'package:espetosystem/app/data/repositories/client_repository.dart';
-import 'package:espetosystem/app/data/repositories/payment_repository.dart';
-import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ClientViewModel extends BaseViewModel {

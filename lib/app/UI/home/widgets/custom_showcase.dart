@@ -9,6 +9,7 @@ class CustomShowcase extends StatelessWidget {
   final ShapeBorder? targetShapeBorder;
   final double width;
   final double height;
+  final String? scope;
 
   const CustomShowcase({
     super.key,
@@ -19,6 +20,7 @@ class CustomShowcase extends StatelessWidget {
     this.targetShapeBorder,
     this.width = 260,
     this.height = 145,
+    this.scope,
   });
 
   @override
@@ -26,6 +28,7 @@ class CustomShowcase extends StatelessWidget {
     final theme = Theme.of(context);
     return Showcase.withWidget(
       key: showcaseKey,
+      scope: scope,
       targetShapeBorder: targetShapeBorder ?? const RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(8)),
       ),
@@ -70,7 +73,11 @@ class CustomShowcase extends StatelessWidget {
               children: [
                 TextButton(
                   onPressed: () {
-                    ShowCaseWidget.of(context).dismiss();
+                    if (scope != null) {
+                      ShowcaseView.getNamed(scope!).dismiss();
+                    } else {
+                      ShowcaseView.get().dismiss();
+                    }
                   },
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -87,7 +94,11 @@ class CustomShowcase extends StatelessWidget {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    ShowCaseWidget.of(context).next();
+                    if (scope != null) {
+                      ShowcaseView.getNamed(scope!).next();
+                    } else {
+                      ShowcaseView.get().next();
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.tertiary,

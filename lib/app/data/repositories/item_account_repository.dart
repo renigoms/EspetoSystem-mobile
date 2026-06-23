@@ -1,7 +1,6 @@
 import 'package:espetosystem/app/data/models/item_account_model.dart';
 import 'package:espetosystem/app/data/repositories/base_repository.dart';
 import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ItemAccountRepository extends BaseRepository<ItemAccountModel> {
   ItemAccountRepository({

@@ -59,7 +59,7 @@ class UserProfileAvatar extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      color: theme.colorScheme.primaryContainer.withOpacity(0.06),
+      color: theme.colorScheme.primaryContainer.withValues(alpha: 0.06),
       alignment: Alignment.center,
       child: Text(
         text,

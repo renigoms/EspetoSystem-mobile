@@ -72,7 +72,7 @@ abstract class BaseRepository<T> {
         }
 
         final savedData = await remoteDataSource.upsert(tableName, remoteData);
-        final savedMap = savedData is Map<String, dynamic> ? savedData : remoteData;
+        final savedMap = savedData;
         
         if (tempId != null) {
           await removeFromCache(userCacheKey, tempId);
@@ -137,7 +137,7 @@ abstract class BaseRepository<T> {
         }
 
         final savedData = await remoteDataSource.upsert(tableName, data);
-        final savedMap = savedData is Map<String, dynamic> ? savedData : data;
+        final savedMap = savedData;
         
         if (tempId != null && savedMap['id'] != null) {
           idMapping[tempId] = savedMap['id'].toString();

@@ -136,15 +136,17 @@ class _LoginPageState extends State<LoginPage> {
             EnterWithGoogle(
               theme: widget.theme,
               onPressed: () async {
-                String? idUSer =
+                final result =
                     await context
                         .read<AuthViewModel>()
                         .continueWithGoogleAction();
 
                 if (!mounted) return;
 
-                snackMessage(idUSer, context);
-                context.go('/home');
+                snackMessage(result, context);
+                if (result.startsWith('Sucesso')) {
+                  context.go('/home');
+                }
               },
             ),
             SizedBox(height: 10),

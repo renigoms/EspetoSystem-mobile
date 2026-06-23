@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import '../../../data/repositories/auth_repository.dart';
@@ -137,6 +138,10 @@ class AuthViewModel extends ChangeNotifier {
   Future<String> continueWithGoogleAction() async {
     if (_authRepository == null) {
       return "Erro de configuração: Repositório não inicializado";
+    }
+    final connectivityResult = await Connectivity().checkConnectivity();
+    if (connectivityResult.contains(ConnectivityResult.none)) {
+      return "Sem conexão com a internet. Verifique sua rede e tente novamente.";
     }
     try {
       final result = await _authRepository.signInWithGoogle();
